@@ -5,27 +5,46 @@ import "./globals.css";
 const geistSans = Geist({ variable: "--font-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
+// Prefer the production domain so X/Discord get a stable absolute image URL.
 const siteUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL
   ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-  : "http://localhost:4317";
+  : process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : "https://claudia-every-frame.vercel.app";
 
+const title = "Claudia — Every Frame";
 const description =
   "One portrait of Claudia, built from every real photograph in claudia.gallery. Zoom in to find each frame.";
 
+// Dedicated X/OG card (1200×675) — see public/og.jpg
+const ogImage = {
+  url: "/og.jpg",
+  width: 1200,
+  height: 675,
+  alt: "Photomosaic portrait of Claudia made from every claudia.gallery photograph",
+  type: "image/jpeg" as const,
+};
+
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "Claudia — Every Frame",
+  title,
   description,
+  applicationName: "Claudia — Every Frame",
+  authors: [{ name: "anabology", url: "https://claudia.gallery/" }],
   openGraph: {
-    title: "Claudia — Every Frame",
+    type: "website",
+    url: siteUrl,
+    siteName: "Claudia — Every Frame",
+    title,
     description,
-    images: [{ url: "/mosaic/claudia-mosaic-x.jpg", width: 2048, height: 1152, alt: "Photomosaic portrait of Claudia" }],
+    locale: "en_US",
+    images: [ogImage],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Claudia — Every Frame",
+    title,
     description,
-    images: ["/mosaic/claudia-mosaic-x.jpg"],
+    images: [ogImage],
   },
 };
 
