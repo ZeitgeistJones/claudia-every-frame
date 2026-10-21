@@ -213,7 +213,7 @@ def main() -> None:
     ap.add_argument("--gy", type=int, default=5)
     ap.add_argument("--size", default="s", choices=["s", "m"], help="source file size used for tiles")
     ap.add_argument("--target", default=DEFAULT_TARGET)
-    ap.add_argument("--target-anchor", type=float, default=0.25, help="vertical crop anchor for the target (0 = keep top)")
+    ap.add_argument("--target-anchor", type=float, default=0.4, help="vertical crop anchor for the target (0 = keep top)")
     ap.add_argument("--canon", action="store_true", help="Film Canon: her && plate only")
     ap.add_argument("--limit", type=int, default=0, help="random subset of N sources (phase-1 tests)")
     ap.add_argument("--alpha", type=float, default=0.75, help="per-tile mean lightness shift toward target (0..1)")
@@ -226,8 +226,9 @@ def main() -> None:
     ap.add_argument("--radius", type=int, default=4, help="min spacing between repeats of a photo")
     ap.add_argument("--quality", type=int, default=86)
     ap.add_argument("--x-width", type=int, default=2048)
-    ap.add_argument("--out", default=str(ROOT / "output"))
+    ap.add_argument("--out", default=str(ROOT / "public" / "mosaic"))
     ap.add_argument("--seed", type=int, default=7)
+    ap.add_argument("--no-dzi", action="store_true", help="skip the deep-zoom tile pyramid")
     ap.add_argument("--no-refresh", action="store_true")
     args = ap.parse_args()
 
@@ -320,7 +321,18 @@ def main() -> None:
     small = vimg.resize(xw / W, vscale=xh / H, kernel="lanczos3")
     small = small.sharpen(sigma=0.6, x1=1.5, m1=0.4, m2=1.2)
     small.jpegsave(str(x_path), Q=92, optimize_coding=True, strip=True, subsample_mode="off")
-    np.save(out / "assignment.npy", a)
+    if not args.no_dzi:
+        import shutil  # noqa: E402
+
+        dzi_dir = out / "dzi"
+        if dzi_dir.exists():
+            shutil.rmtree(dzi_dir)
+        dzi_dir.mkdir(parents=True)
+        log("writing deep-zoom pyramid (DZI)")
+        vimg.dzsave(str(dzi_dir / "mosaic"), tile_size=510, overlap=1, suffix=".webp[Q=82]", layout="dz", strip=True)
+        nfiles = sum(1 for _ in (dzi_dir / "mosaic_files").rglob("*.webp"))
+        nbytes = sum(p.stat().st_size for p in (dzi_dir / "mosaic_files").rglob("*.webp"))
+        log(f"DZI: {nfiles} tiles, {nbytes / 1e6:.1f} MB")
 
     # ---- records
     sources = []
