@@ -33,7 +33,7 @@ npm run dev        # http://localhost:4317
 ## Rebuild the mosaic (e.g. after the archive grows)
 
 ```bash
-python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+python3 -m venv .venv && .venv/bin/pip install -r pipeline/requirements.txt
 .venv/bin/python pipeline/build_mosaic.py                                 # all her===true → public/mosaic
 .venv/bin/python pipeline/build_mosaic.py --canon --out public/mosaic-canon
 ```
