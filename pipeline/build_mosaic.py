@@ -142,17 +142,82 @@ def cost_matrix(tfeat: np.ndarray, sfeat: np.ndarray, chan_w: tuple[float, float
     return np.maximum(d, 0) / t.shape[1]
 
 
-def assign(cost: np.ndarray, extra_copies: int) -> np.ndarray:
-    """Global assignment; every source at least once, then extra copies."""
+# Hard house rules for every mosaic going forward:
+#   1. Every eligible photograph is used at least once.
+#   2. No photograph is used more than MAX_USES times.
+MAX_USES = 4
+
+
+def fit_grid(n_sources: int, preferred_cols: int, preferred_rows: int, max_uses: int = MAX_USES) -> tuple[int, int]:
+    """
+    Pick a cols×rows grid that can obey the house rules for n_sources photos.
+    Need n_sources <= cells <= max_uses * n_sources.
+    """
+    if n_sources < 1:
+        raise SystemExit("no sources to place")
+    lo, hi = n_sources, max_uses * n_sources
+    cols, rows = preferred_cols, preferred_rows
+    cells = cols * rows
+    # Grow until every photo fits at least once
+    while cells < lo:
+        if cols <= rows:
+            cols += 1
+        else:
+            rows += 1
+        cells = cols * rows
+    # Shrink until no photo would need more than max_uses
+    while cells > hi and (cols > 1 or rows > 1):
+        if cols >= rows and cols > 1:
+            cols -= 1
+        elif rows > 1:
+            rows -= 1
+        else:
+            break
+        cells = cols * rows
+    if not (lo <= cols * rows <= hi):
+        raise SystemExit(
+            f"cannot fit {n_sources} photos under house rules "
+            f"(need {lo}–{hi} tiles; got {cols}x{rows}={cols * rows}). "
+            f"Raise --cols/--rows or add more source photos."
+        )
+    if (cols, rows) != (preferred_cols, preferred_rows):
+        log(f"grid adjusted for house rules: {preferred_cols}x{preferred_rows} → {cols}x{rows} "
+            f"({cols * rows} tiles for {n_sources} photos, max {max_uses}× each)")
+    return cols, rows
+
+
+def assign(cost: np.ndarray, max_uses: int = MAX_USES) -> np.ndarray:
+    """
+    Global assignment under hard house rules:
+      - every source used ≥ 1
+      - no source used > max_uses
+    """
     m, n = cost.shape
-    copies = max(1, math.ceil(m / n)) + extra_copies if m > n else 1
-    big = cost.max() * 10 + 1.0
-    blocks = [cost - big] + [cost] * (copies - 1)
+    if n > m:
+        raise SystemExit(f"house rule broken: {n} photos > {m} tiles (every photo must appear)")
+    if m > max_uses * n:
+        raise SystemExit(
+            f"house rule broken: {m} tiles would force some photo above {max_uses}× "
+            f"(max capacity {max_uses * n})"
+        )
+    # First copy of every source is heavily preferred so all n are taken;
+    # remaining cells come from copies 2..max_uses only.
+    big = float(cost.max()) * 10 + 1.0
+    blocks = [cost - big] + [cost] * (max_uses - 1)
     full = np.concatenate(blocks, axis=1)
-    log(f"assignment: {m} cells x {full.shape[1]} source-copies ({n} sources, up to {copies} uses each)")
-    rows, cols = linear_sum_assignment(full)
+    log(f"assignment: {m} cells × {n} sources, hard cap {max_uses}× each "
+        f"({full.shape[1]} candidate slots)")
+    rows_i, cols_i = linear_sum_assignment(full)
     out = np.empty(m, np.int64)
-    out[rows] = cols % n
+    out[rows_i] = cols_i % n
+    counts = np.bincount(out, minlength=n)
+    if int(counts.min()) < 1 or int((counts > 0).sum()) < n:
+        missing = int(n - (counts > 0).sum())
+        raise SystemExit(f"house rule broken: {missing} photos were not placed")
+    if int(counts.max()) > max_uses:
+        raise SystemExit(
+            f"house rule broken: a photo was used {int(counts.max())}× (max {max_uses})"
+        )
     return out
 
 
@@ -222,7 +287,7 @@ def main() -> None:
     ap.add_argument("--beta", type=float, default=0.2, help="target overlay strength (0..1)")
     ap.add_argument("--face-boost", type=float, default=3.0)
     ap.add_argument("--edge-boost", type=float, default=1.5)
-    ap.add_argument("--extra-copies", type=int, default=1)
+    ap.add_argument("--max-uses", type=int, default=MAX_USES, help="hard cap on times any photo may appear")
     ap.add_argument("--radius", type=int, default=4, help="min spacing between repeats of a photo")
     ap.add_argument("--quality", type=int, default=86)
     ap.add_argument("--x-width", type=int, default=2048)
@@ -235,8 +300,8 @@ def main() -> None:
     rng = random.Random(args.seed)
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
-    cols, rows, tw, th, gx, gy = args.cols, args.rows, args.tile_w, args.tile_h, args.gx, args.gy
-    W, H = cols * tw, rows * th
+    tw, th, gx, gy = args.tile_w, args.tile_h, args.gx, args.gy
+    max_uses = max(1, int(args.max_uses))
     t0 = time.time()
 
     # ---- sources
@@ -247,6 +312,7 @@ def main() -> None:
     if args.limit and args.limit < len(items):
         items = rng.sample(items, args.limit)
     log(f"{eligible_count} eligible ({'Film Canon' if args.canon else 'all her===true'}); using {len(items)}")
+    log(f"house rules: every photo at least once · max {max_uses}× any single photo")
     dl_fail = fetch.download_all(items, args.size)
 
     log("loading + describing sources")
@@ -264,6 +330,10 @@ def main() -> None:
     sfeat = np.stack(feats)  # n, gy, gx, 3
     log(f"{len(tiles)} sources ready, {len(failures)} failed")
 
+    # Grid must obey house rules for this source count
+    cols, rows = fit_grid(len(tiles), args.cols, args.rows, max_uses=max_uses)
+    W, H = cols * tw, rows * th
+
     # ---- target
     if args.target not in by_id:
         raise SystemExit(f"target {args.target} not in gallery index")
@@ -280,10 +350,16 @@ def main() -> None:
     # ---- assignment
     base = cost_matrix(tlab, sfeat, (1.0, 0.8, 0.8))
     cost = base * weights[:, None]
-    a = assign(cost, args.extra_copies)
+    a = assign(cost, max_uses=max_uses)
     spread_repeats(a, cost, cols, rows, args.radius, rng)
     counts = np.bincount(a, minlength=len(tiles))
-    log(f"unique sources placed: {(counts > 0).sum()} / {len(tiles)}; max uses {counts.max()}")
+    if int(counts.min()) < 1 or int(counts.max()) > max_uses:
+        raise SystemExit(
+            f"house rules failed after spread: min={int(counts.min())} max={int(counts.max())} "
+            f"(need min≥1, max≤{max_uses})"
+        )
+    log(f"unique sources placed: {(counts > 0).sum()} / {len(tiles)}; "
+        f"uses {int(counts.min())}–{int(counts.max())} (cap {max_uses})")
 
     # ---- render
     log(f"rendering {W}x{H} ({cols}x{rows} tiles of {tw}x{th})")
@@ -343,11 +419,17 @@ def main() -> None:
             "s": it["url"]["s"], "m": it["url"]["m"], "full": it["url"]["full"], "page": it.get("page"),
             "uses": int(counts[k]),
         })
+    rules = {
+        "every_photo_at_least_once": True,
+        "max_uses_per_photo": max_uses,
+        "label": f"every photograph · max {max_uses}× each",
+    }
     mosaic = {
         "title": "Claudia — Every Frame",
         "credit": "Claudia by anabology · photographs from claudia.gallery",
         "mode": "film-canon" if args.canon else "all-her",
         "target": {"id": tgt_item["id"], "page": tgt_item.get("page"), "m": tgt_item["url"]["m"]},
+        "rules": rules,
         "width": W, "height": H, "cols": cols, "rows": rows, "tileW": tw, "tileH": th,
         "cells": [int(x) for x in a],
         "sources": sources,
@@ -361,6 +443,7 @@ def main() -> None:
         "total_tiles": int(rows * cols),
         "max_uses_per_source": int(counts.max()),
         "min_uses_per_source": int(counts.min()),
+        "rules": rules,
         "full_resolution": f"{W}x{H}",
         "full_file": full_path.name, "full_bytes": full_path.stat().st_size,
         "x_resolution": f"{xw}x{xh}",

@@ -11,17 +11,22 @@ Claudia by anabology.
 | Path | What it is |
 | --- | --- |
 | `pipeline/fetch.py` | Reads the official API (`/api/images.json`), selects `her === true` images (or `her && plate` with `--canon`), and caches files in `cache/img/`. Already-downloaded files are reused. |
-| `pipeline/build_mosaic.py` | Builds the mosaic: Lab structure matching, a global assignment that uses every photo at least once, repeat spreading, rendering, JPEG exports, and a deep-zoom (DZI) pyramid. |
+| `pipeline/build_mosaic.py` | Builds the mosaic: Lab structure matching, hard house rules (every photo ≥1×, max 4× each), global assignment, repeat spreading, rendering, JPEG exports, and a deep-zoom (DZI) pyramid. |
 | `public/mosaic/` | Default mosaic (all `her === true` photos): `claudia-mosaic-full.jpg`, `claudia-mosaic-x.jpg`, `mosaic.json` (cell → photo map), `report.json`, `dzi/`. |
 | `public/mosaic-canon/` | Same outputs for Film Canon mode (`her && plate`). |
 | `app/`, `components/` | Next.js viewer (OpenSeadragon deep zoom, click a tile to see the original). |
 
+## House rules
+
+* Every eligible photograph appears **at least once**
+* No photograph is used more than **4×**
+* The builder shrinks the grid when needed so those caps hold (Film Canon has fewer sources, so fewer tiles than All)
+
 ## Current build
 
-* 1,378 of 1,378 eligible photographs placed (Film Canon: 226 of 226), 0 download failures
-* 64 × 64 = 4,096 tiles, each 320 × 180 px
-* Master: 20,480 × 11,520 px JPEG (~39 MB); X preview: 2048 × 1152 JPEG
-* Target portrait: `ev-14-dist.dist-cu.3` (a real gallery close-up)
+* All: 1,378 of 1,378 photographs · 64 × 64 = 4,096 tiles · uses 1–4× each
+* Film Canon: 226 of 226 photographs · grid fitted under the same max-4 rule
+* Tile size 320 × 180 px; target portrait `ev-14-dist.dist-cu.3`
 
 ## Run the viewer locally
 

@@ -26,7 +26,12 @@ function authorized(req: Request): boolean {
     return process.env.NODE_ENV !== "production";
   }
   const header = req.headers.get("authorization") || "";
+  // Vercel Cron sends: Authorization: Bearer <CRON_SECRET>
   if (header === `Bearer ${secret}`) return true;
+  // Also accept x-vercel-cron (present on cron invocations)
+  if (req.headers.get("x-vercel-cron") === "1" && header.startsWith("Bearer ")) {
+    return header.slice("Bearer ".length) === secret;
+  }
   const url = new URL(req.url);
   return url.searchParams.get("key") === secret;
 }

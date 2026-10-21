@@ -14,7 +14,7 @@ const siteUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL
 
 const title = "Claudia — Every Frame";
 const description =
-  "One portrait of Claudia, built from every real photograph in claudia.gallery. Zoom in to find each frame.";
+  "One portrait of Claudia, built from every real photograph in claudia.gallery. Every photo appears at least once; none more than 4×. Zoom in to find each frame.";
 
 // Dedicated X/OG card (1200×675) — see public/og.jpg
 const ogImage = {

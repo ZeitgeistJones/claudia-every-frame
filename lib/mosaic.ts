@@ -32,11 +32,18 @@ export interface MosaicSource {
   uses: number;
 }
 
+export interface MosaicRules {
+  every_photo_at_least_once: boolean;
+  max_uses_per_photo: number;
+  label: string;
+}
+
 export interface MosaicData {
   title: string;
   credit: string;
   mode: string;
   target: { id: string; page: string | null; m: string };
+  rules?: MosaicRules;
   width: number;
   height: number;
   cols: number;
@@ -52,6 +59,9 @@ export interface MosaicReport {
   sources_loaded: number;
   unique_sources_placed: number;
   total_tiles: number;
+  max_uses_per_source?: number;
+  min_uses_per_source?: number;
+  rules?: MosaicRules;
   full_resolution: string;
   full_bytes: number;
   x_resolution: string;
@@ -59,6 +69,9 @@ export interface MosaicReport {
   failures: Record<string, string>;
   target?: string;
 }
+
+/** House rules shown on the site — hard caps the mosaic builder also enforces. */
+export const HOUSE_RULES_LABEL = "every photograph · max 4× each";
 
 export interface EditionTargets {
   all: string;

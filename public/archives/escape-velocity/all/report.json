@@ -41,5 +41,10 @@
     "no_dzi": false,
     "no_refresh": true
   },
-  "seconds": 53.4
+  "seconds": 53.4,
+  "rules": {
+    "every_photo_at_least_once": true,
+    "max_uses_per_photo": 4,
+    "label": "every photograph \u00b7 max 4\u00d7 each"
+  }
 }

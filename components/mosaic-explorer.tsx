@@ -11,6 +11,7 @@ import { Download, ExternalLink, Expand, Minimize, Minus, Plus, Scan, Loader2 } 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import {
+  HOUSE_RULES_LABEL,
   MODES,
   editionBase,
   type Edition,
@@ -481,7 +482,7 @@ export function MosaicExplorer() {
         </Button>
       </div>
 
-      {/* bottom-left: counter + credit */}
+      {/* bottom-left: counter + house rules + credit */}
       <footer className="pointer-events-none absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/75 via-black/30 to-transparent px-4 pt-12 pb-3 sm:px-6 sm:pb-4">
         <div className="max-w-[calc(100%-10rem)] sm:max-w-none">
           <p className="font-mono text-[11px] tabular-nums tracking-wide text-white/80">
@@ -494,6 +495,14 @@ export function MosaicExplorer() {
             ) : (
               <span className="text-white/45">counting photographs…</span>
             )}
+          </p>
+          <p className="mt-1 text-[10.5px] tracking-wide text-white/55">
+            {report?.rules?.label ?? data?.rules?.label ?? HOUSE_RULES_LABEL}
+            {report?.max_uses_per_source != null && report?.min_uses_per_source != null ? (
+              <span className="text-white/35">
+                {" "}· this build {report.min_uses_per_source}–{report.max_uses_per_source}×
+              </span>
+            ) : null}
           </p>
           {activeEdition?.homage && (
             <p className="mt-1 max-w-xl text-[10.5px] leading-snug tracking-wide text-white/40">
@@ -524,7 +533,7 @@ export function MosaicExplorer() {
       {/* first-visit hint */}
       {status === "ready" && showHint && !hovered && (
         <div className="pointer-events-none absolute bottom-16 left-1/2 z-20 -translate-x-1/2 animate-in rounded-full border border-white/10 bg-black/60 px-4 py-2 text-[11px] tracking-wide whitespace-nowrap text-white/80 backdrop-blur fade-in duration-700 sm:bottom-6">
-          Scroll or pinch to zoom · every tile is a real photograph
+          Scroll or pinch to zoom · every photo used · none more than 4×
         </div>
       )}
 
