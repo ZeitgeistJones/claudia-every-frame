@@ -336,7 +336,7 @@ export function MosaicExplorer() {
       </div>
 
       {/* top bar */}
-      <header className="pointer-events-none absolute inset-x-0 top-0 z-20 bg-gradient-to-b from-black/80 via-black/40 to-transparent px-4 pt-3 pb-10 sm:px-6 sm:pt-4">
+      <header className="pointer-events-none absolute inset-x-0 top-0 z-20 bg-gradient-to-b from-black/80 via-black/35 to-transparent px-3 pt-2.5 pb-8 sm:px-6 sm:pt-4 sm:pb-10">
         <div className="pointer-events-auto flex flex-wrap items-center justify-between gap-x-4 gap-y-2.5">
           <div className="flex items-baseline gap-3">
             <h1 className="text-[12px] font-semibold tracking-[0.28em] sm:text-[13px]">
@@ -379,7 +379,7 @@ export function MosaicExplorer() {
               title={report ? `${report.full_resolution} px` : "Full-resolution master"}
             >
               <Download className="size-3.5" />
-              Full res{report ? <span className="text-white/45">· {formatBytes(report.full_bytes)}</span> : null}
+              Full{report ? <span className="hidden text-white/45 sm:inline"> · {formatBytes(report.full_bytes)}</span> : null}
             </a>
             {canFullscreen && (
               <Button
