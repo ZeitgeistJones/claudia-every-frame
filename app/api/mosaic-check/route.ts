@@ -8,8 +8,8 @@
 
 import { NextResponse } from "next/server";
 
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
+// No `runtime` / `dynamic` segment exports — incompatible with cacheComponents.
+// Reading the Request already keeps this route dynamic.
 
 const GALLERY = "https://claudia.gallery";
 
@@ -43,8 +43,8 @@ export async function GET(req: Request) {
 
   try {
     const [filmsRes, editionsRes] = await Promise.all([
-      fetch(`${GALLERY}/api/films.json`, { next: { revalidate: 0 } }),
-      fetch(new URL("/editions.json", req.url), { next: { revalidate: 0 } }),
+      fetch(`${GALLERY}/api/films.json`, { cache: "no-store" }),
+      fetch(new URL("/editions.json", req.url), { cache: "no-store" }),
     ]);
 
     if (!filmsRes.ok) {
