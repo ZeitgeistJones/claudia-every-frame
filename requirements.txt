@@ -1,0 +1,7 @@
+pillow>=11
+numpy>=2
+scipy>=1.13
+opencv-python-headless>=4.10,<5
+pyvips>=2.2
+pyvips-binary>=8.16
+requests>=2.32
