@@ -1,0 +1,14 @@
+{
+  "id": "escape-velocity",
+  "filmId": "escape-velocity",
+  "filmTitle": "ESCAPE VELOCITY",
+  "label": "ESCAPE VELOCITY",
+  "released": "September 2026",
+  "createdAt": "2026-10-21",
+  "homage": "A front-facing portrait from ESCAPE VELOCITY — the first film.",
+  "targets": {
+    "all": "ev-14-dist.dist-cu.3",
+    "canon": "ev-14-dist.dist-cu.3"
+  },
+  "note": "Edition 1 used the same target for All and Film Canon. Later editions can split them."
+}

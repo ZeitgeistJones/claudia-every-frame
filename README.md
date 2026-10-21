@@ -43,3 +43,22 @@ regenerates every output. Useful flags: `--cols/--rows` (grid), `--tile-w/--tile
 (tile pixels), `--alpha/--alpha-ab/--beta` (how strongly tiles are tinted toward
 the portrait), `--target` (gallery id of the portrait), `--limit N` (quick test
 with a random subset).
+
+## Editions (new films)
+
+Each new Claudia film can get its own **homage edition**:
+
+- **All** mosaic → portrait picked from that film's `her===true` stills
+- **Film Canon** mosaic → portrait picked from that film's `her && plate` stills
+- Those two targets can be **different images**
+- Previous editions are archived under `public/archives/<film-id>/`
+- The live site always serves `public/mosaic` + `public/mosaic-canon`, with an Edition menu to revisit archives
+
+When a new film lands on claudia.gallery:
+
+```bash
+.venv/bin/python pipeline/update_mosaic.py --check   # see if an update is needed
+.venv/bin/python pipeline/update_mosaic.py           # archive current, rebuild for newest film
+```
+
+A weekly Vercel cron hits `/api/mosaic-check` (set `CRON_SECRET` in Vercel). That endpoint only *detects* a new film — rebuilding still runs via the Python pipeline (too big for Hobby serverless).

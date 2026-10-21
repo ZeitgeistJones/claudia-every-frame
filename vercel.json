@@ -1,1 +1,11 @@
-{ "framework": "nextjs", "buildCommand": "next build", "installCommand": "npm install" }
+{
+  "framework": "nextjs",
+  "buildCommand": "next build",
+  "installCommand": "npm install",
+  "crons": [
+    {
+      "path": "/api/mosaic-check",
+      "schedule": "0 14 * * 1"
+    }
+  ]
+}

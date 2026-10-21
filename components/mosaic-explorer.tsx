@@ -12,12 +12,16 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import {
   MODES,
+  editionBase,
+  type Edition,
+  type EditionsFile,
   type ModeKey,
   type MosaicData,
   type MosaicReport,
   type MosaicSource,
   formatBytes,
   galleryUrl,
+  parseEditions,
   parseMosaic,
   parseReport,
 } from "@/lib/mosaic";
@@ -60,8 +64,14 @@ export function MosaicExplorer() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const canFullscreen = useSyncExternalStore(noopSubscribe, fullscreenSupported, serverFalse);
   const [photoLoaded, setPhotoLoaded] = useState(false);
+  const [editions, setEditions] = useState<EditionsFile | null>(null);
+  const [editionId, setEditionId] = useState<string | null>(null);
 
-  const base = MODES[mode].base;
+  const activeEdition: Edition | null =
+    editions?.editions.find((e) => e.id === editionId) ?? editions?.editions[0] ?? null;
+  const base = activeEdition
+    ? editionBase(activeEdition, mode, editions?.current ?? null)
+    : mode === "all" ? "/mosaic" : "/mosaic-canon";
 
   // ---------- geometry helpers (image px <-> screen px)
 
@@ -231,10 +241,44 @@ export function MosaicExplorer() {
     };
   }, [cellAt, placeBox, refreshBoxes, tileScreenWidth]);
 
+  // ---------- load edition registry
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/editions.json")
+      .then((r) => {
+        if (!r.ok) throw new Error(`editions.json HTTP ${r.status}`);
+        return r.json();
+      })
+      .then((raw) => {
+        if (cancelled) return;
+        const parsed = parseEditions(raw);
+        setEditions(parsed);
+        setEditionId(parsed.current ?? parsed.editions[0]?.id ?? null);
+        // keep initial loading state until mosaic tiles open
+      })
+      .catch((err: unknown) => {
+        console.error("[mosaic] editions.json missing; using live folders only", err);
+        setEditions({ current: "live", editions: [{
+          id: "live",
+          filmId: "live",
+          filmTitle: "Current",
+          label: "Current",
+          targets: { all: "", canon: "" },
+          paths: { all: "/mosaic", canon: "/mosaic-canon" },
+        }] });
+        setEditionId("live");
+      });
+    return () => { cancelled = true; };
+  }, []);
+
   // ---------- load mosaic data + tiles for the current mode
 
   useEffect(() => {
     let cancelled = false;
+    if (!editionId) return;
+
+    hoverCellRef.current = -1;
+    selectCellRef.current = -1;
 
     Promise.all([
       fetch(`${base}/mosaic.json`).then((r) => {
@@ -272,7 +316,7 @@ export function MosaicExplorer() {
     return () => {
       cancelled = true;
     };
-  }, [base]);
+  }, [base, editionId]);
 
   // ---------- fullscreen
 
@@ -299,6 +343,17 @@ export function MosaicExplorer() {
     selectCellRef.current = -1;
     refreshBoxes();
     setMode(k);
+  };
+
+  const changeEdition = (id: string) => {
+    if (id === editionId) return;
+    setStatus("loading");
+    setPicked(null);
+    setHovered(null);
+    hoverCellRef.current = -1;
+    selectCellRef.current = -1;
+    refreshBoxes();
+    setEditionId(id);
   };
 
   const zoomIn = useCallback(() => {
@@ -346,6 +401,23 @@ export function MosaicExplorer() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            {editions && editions.editions.length > 0 && (
+              <label className="flex items-center gap-1.5 rounded-full border border-white/12 bg-black/50 px-2.5 py-1 text-[11px] tracking-wide text-white/70 backdrop-blur">
+                <span className="hidden text-white/40 sm:inline">Edition</span>
+                <select
+                  aria-label="Mosaic edition"
+                  value={editionId ?? ""}
+                  onChange={(e) => changeEdition(e.target.value)}
+                  className="max-w-[11rem] cursor-pointer appearance-none bg-transparent font-medium text-white/90 outline-none sm:max-w-[14rem]"
+                >
+                  {editions.editions.map((ed) => (
+                    <option key={ed.id} value={ed.id} className="bg-[#121014] text-white">
+                      {ed.label}{ed.id === editions.current ? " · live" : ""}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
             <div role="radiogroup" aria-label="Source photographs" className="flex rounded-full border border-white/12 bg-black/50 p-0.5 text-[11px] backdrop-blur">
               {(Object.keys(MODES) as ModeKey[]).map((k) => (
                 <button
@@ -423,6 +495,14 @@ export function MosaicExplorer() {
               <span className="text-white/45">counting photographs…</span>
             )}
           </p>
+          {activeEdition?.homage && (
+            <p className="mt-1 max-w-xl text-[10.5px] leading-snug tracking-wide text-white/40">
+              {activeEdition.homage}
+              {activeEdition.targets.all && activeEdition.targets.canon && activeEdition.targets.all !== activeEdition.targets.canon && (
+                <span className="text-white/30"> · All & Film Canon use different homage stills</span>
+              )}
+            </p>
+          )}
           <p className="pointer-events-auto mt-1 text-[10.5px] tracking-wide text-white/45">
             Claudia by anabology · photographs from{" "}
             <a href="https://claudia.gallery/" target="_blank" rel="noreferrer" className="underline decoration-white/25 underline-offset-2 hover:text-white/80">

@@ -8,7 +8,9 @@
     "start": "next start -p 4317",
     "lint": "eslint",
     "mosaic:fetch": ".venv/bin/python pipeline/fetch.py",
-    "mosaic:build": ".venv/bin/python pipeline/build_mosaic.py"
+    "mosaic:build": ".venv/bin/python pipeline/build_mosaic.py",
+    "mosaic:check": ".venv/bin/python pipeline/update_mosaic.py --check",
+    "mosaic:update": ".venv/bin/python pipeline/update_mosaic.py"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
