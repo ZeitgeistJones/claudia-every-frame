@@ -50,7 +50,11 @@ export async function GET(req: Request) {
     const films = Array.isArray(filmsJson) ? filmsJson : filmsJson.films || [];
     const filmIds = films.map((f) => f.id).filter(Boolean);
 
-    let editions: { current?: string | null; editions?: { id: string; filmId?: string }[] } = {
+    let editions: {
+      current?: string | null;
+      knownFilms?: string[];
+      editions?: { id: string; filmId?: string }[];
+    } = {
       current: null,
       editions: [],
     };
@@ -58,9 +62,10 @@ export async function GET(req: Request) {
       editions = await editionsRes.json();
     }
 
-    const seen = new Set(
-      (editions.editions || []).map((e) => e.filmId || e.id).filter(Boolean) as string[],
-    );
+    const seen = new Set<string>([
+      ...(editions.knownFilms || []),
+      ...((editions.editions || []).map((e) => e.filmId || e.id).filter(Boolean) as string[]),
+    ]);
     const unseen = films.filter((f) => f.id && !seen.has(f.id));
     const nextFilm = unseen.length ? unseen[unseen.length - 1] : null;
 

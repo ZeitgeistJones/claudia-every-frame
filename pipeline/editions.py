@@ -51,8 +51,11 @@ def save_editions(data: dict) -> None:
 
 
 def known_film_ids(data: dict | None = None) -> set[str]:
+    """Films we have already handled (editions + baseline knownFilms list)."""
     data = data or load_editions()
-    return {e["filmId"] for e in data.get("editions", []) if e.get("filmId")}
+    ids = {e["filmId"] for e in data.get("editions", []) if e.get("filmId")}
+    ids.update(x for x in data.get("knownFilms", []) if isinstance(x, str))
+    return ids
 
 
 def score_target(item: dict, *, prefer_plate: bool) -> float:
@@ -194,6 +197,9 @@ def upsert_edition(
     editions = [e for e in data.get("editions", []) if e.get("id") != edition_id]
     editions.insert(0, entry)
     data["editions"] = editions
+    known = set(data.get("knownFilms") or [])
+    known.add(edition_id)
+    data["knownFilms"] = sorted(known)
     if make_current:
         data["current"] = edition_id
     save_editions(data)

@@ -86,6 +86,7 @@ export interface Edition {
 
 export interface EditionsFile {
   current: string | null;
+  knownFilms?: string[];
   editions: Edition[];
 }
 
