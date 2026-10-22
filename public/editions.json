@@ -1,14 +1,134 @@
 {
   "current": "escape-velocity",
   "knownFilms": [
-    "escape-velocity",
-    "clodyssey",
-    "bliss",
     "airplane-mode",
+    "bliss",
+    "clodyssey",
+    "dont-let-me-scroll",
     "downforce",
-    "dont-let-me-scroll"
+    "escape-velocity"
   ],
   "editions": [
+    {
+      "id": "dont-let-me-scroll",
+      "filmId": "dont-let-me-scroll",
+      "filmTitle": "DON'T LET ME SCROLL",
+      "label": "DON'T LET ME SCROLL",
+      "released": "October 2026",
+      "createdAt": "2026-10-22",
+      "homage": "Homage to DON'T LET ME SCROLL \u2014 All target sc-02-perf.R03.3; Film Canon target sc-02-perf.R27.1.",
+      "targets": {
+        "all": "sc-02-perf.R03.3",
+        "canon": "sc-02-perf.R27.1"
+      },
+      "paths": {
+        "all": "/archives/dont-let-me-scroll/all",
+        "canon": "/archives/dont-let-me-scroll/canon"
+      },
+      "counts": {
+        "allUnique": 1378,
+        "allTiles": 1380,
+        "canonUnique": 226,
+        "canonTiles": 234
+      },
+      "note": "Each photograph once. All and Film Canon may use different homage stills from this film."
+    },
+    {
+      "id": "downforce",
+      "filmId": "downforce",
+      "filmTitle": "DOWNFORCE",
+      "label": "DOWNFORCE",
+      "released": "October 2026",
+      "createdAt": "2026-10-22",
+      "homage": "Homage to DOWNFORCE \u2014 All target rh-02-plates.id-face.1; Film Canon target rh-02-plates.g05.2.",
+      "targets": {
+        "all": "rh-02-plates.id-face.1",
+        "canon": "rh-02-plates.g05.2"
+      },
+      "paths": {
+        "all": "/archives/downforce/all",
+        "canon": "/archives/downforce/canon"
+      },
+      "counts": {
+        "allUnique": 1378,
+        "allTiles": 1380,
+        "canonUnique": 226,
+        "canonTiles": 234
+      },
+      "note": "Each photograph once. All and Film Canon may use different homage stills from this film."
+    },
+    {
+      "id": "airplane-mode",
+      "filmId": "airplane-mode",
+      "filmTitle": "AIRPLANE MODE",
+      "label": "AIRPLANE MODE",
+      "released": "October 2026",
+      "createdAt": "2026-10-22",
+      "homage": "Homage to AIRPLANE MODE \u2014 All target am-14.s-headset-up-adult-b.1; Film Canon target am-19.b02-wink.2.",
+      "targets": {
+        "all": "am-14.s-headset-up-adult-b.1",
+        "canon": "am-19.b02-wink.2"
+      },
+      "paths": {
+        "all": "/archives/airplane-mode/all",
+        "canon": "/archives/airplane-mode/canon"
+      },
+      "counts": {
+        "allUnique": 1378,
+        "allTiles": 1380,
+        "canonUnique": 226,
+        "canonTiles": 234
+      },
+      "note": "Each photograph once. All and Film Canon may use different homage stills from this film."
+    },
+    {
+      "id": "bliss",
+      "filmId": "bliss",
+      "filmTitle": "BLISS",
+      "label": "BLISS",
+      "released": "October 2026",
+      "createdAt": "2026-10-22",
+      "homage": "Homage to BLISS \u2014 All target xp-03-her.her-tile-window.3; Film Canon target xp-03-her.her-tile.1.",
+      "targets": {
+        "all": "xp-03-her.her-tile-window.3",
+        "canon": "xp-03-her.her-tile.1"
+      },
+      "paths": {
+        "all": "/archives/bliss/all",
+        "canon": "/archives/bliss/canon"
+      },
+      "counts": {
+        "allUnique": 1378,
+        "allTiles": 1380,
+        "canonUnique": 226,
+        "canonTiles": 234
+      },
+      "note": "Each photograph once. All and Film Canon may use different homage stills from this film."
+    },
+    {
+      "id": "clodyssey",
+      "filmId": "clodyssey",
+      "filmTitle": "CLODYSSEY",
+      "label": "CLODYSSEY",
+      "released": "September 2026",
+      "createdAt": "2026-10-22",
+      "homage": "Homage to CLODYSSEY \u2014 All target sp-04-end.chrome-ear.3; Film Canon target sp-09-review.her-tied-whisper.2.",
+      "targets": {
+        "all": "sp-04-end.chrome-ear.3",
+        "canon": "sp-09-review.her-tied-whisper.2"
+      },
+      "paths": {
+        "all": "/archives/clodyssey/all",
+        "canon": "/archives/clodyssey/canon"
+      },
+      "counts": {
+        "allUnique": 1378,
+        "allTiles": 1380,
+        "canonUnique": 226,
+        "canonTiles": 234
+      },
+      "note": "Each photograph once. All and Film Canon may use different homage stills from this film."
+    },
     {
       "id": "escape-velocity",
       "filmId": "escape-velocity",

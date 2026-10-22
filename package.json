@@ -11,7 +11,8 @@
     "mosaic:build": ".venv/bin/python pipeline/build_mosaic.py",
     "mosaic:check": ".venv/bin/python pipeline/update_mosaic.py --check",
     "mosaic:update": ".venv/bin/python pipeline/update_mosaic.py",
-    "mosaic:catalog": ".venv/bin/python pipeline/build_catalog.py"
+    "mosaic:catalog": ".venv/bin/python pipeline/build_catalog.py",
+    "mosaic:editions": ".venv/bin/python pipeline/build_editions_batch.py"
   },
   "dependencies": {
     "@ai-sdk/gateway": "^4.0.121",

@@ -1,0 +1,8 @@
+{
+  "id": "downforce",
+  "targets": {
+    "all": "rh-02-plates.id-face.1",
+    "canon": "rh-02-plates.g05.2"
+  },
+  "title": "DOWNFORCE"
+}

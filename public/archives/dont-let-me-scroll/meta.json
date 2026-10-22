@@ -1,0 +1,8 @@
+{
+  "id": "dont-let-me-scroll",
+  "targets": {
+    "all": "sc-02-perf.R03.3",
+    "canon": "sc-02-perf.R27.1"
+  },
+  "title": "DON'T LET ME SCROLL"
+}
