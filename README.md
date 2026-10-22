@@ -19,8 +19,8 @@ Claudia by anabology.
 ## House rules
 
 * Every eligible photograph appears **exactly once** (no reuse)
-* The grid is factored to match the source count (All and Film Canon differ in size)
-* **Official editions** are curated on the site; **Studio** lets anyone prompt a Claudia-related homage and share a link (same 1× rule, browser-built preview)
+* Near-square grids; a few empty cells when the count can’t tile cleanly (same idea as the first cut)
+* **Official editions** = curated deep-zoom on `/`; **Studio** at `/studio` = prompt a Claudia-related homage, filter for appropriate, build a shareable 1× preview in the browser
 
 ## Current build
 
