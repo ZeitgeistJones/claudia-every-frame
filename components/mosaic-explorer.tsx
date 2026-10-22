@@ -85,7 +85,9 @@ export function MosaicExplorer() {
     const row = Math.floor(p.y / d.tileH);
     if (col < 0 || row < 0 || col >= d.cols || row >= d.rows) return null;
     const cell = row * d.cols + col;
-    const source = d.sources[d.cells[cell]];
+    const srcIdx = d.cells[cell];
+    if (srcIdx == null || srcIdx < 0) return null; // empty cell (1× grid gap)
+    const source = d.sources[srcIdx];
     if (!source) return null;
     return { cell, row, col, source };
   }, []);
@@ -398,10 +400,17 @@ export function MosaicExplorer() {
             <h1 className="text-[12px] font-semibold tracking-[0.28em] sm:text-[13px]">
               CLAUDIA <span className="text-[#D97757]">✳</span> EVERY FRAME
             </h1>
-            <span className="hidden text-[11px] tracking-wide text-white/45 md:inline">a real photomosaic</span>
+            <span className="hidden text-[11px] tracking-wide text-white/45 md:inline">official editions</span>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            <a
+              href="/studio"
+              className="inline-flex h-8 items-center gap-1.5 rounded-full border border-[#D97757]/45 bg-[#D97757]/15 px-3 text-[11px] font-medium tracking-wide text-[#f0c4b0] backdrop-blur transition-colors hover:border-[#D97757]/70 hover:bg-[#D97757]/25"
+              title="Prompt your own Claudia mosaic and share it"
+            >
+              Studio
+            </a>
             {editions && editions.editions.length > 0 && (
               <label className="flex items-center gap-1.5 rounded-full border border-white/12 bg-black/50 px-2.5 py-1 text-[11px] tracking-wide text-white/70 backdrop-blur">
                 <span className="hidden text-white/40 sm:inline">Edition</span>
@@ -498,7 +507,9 @@ export function MosaicExplorer() {
           </p>
           <p className="mt-1 text-[10.5px] tracking-wide text-white/55">
             {report?.rules?.label ?? data?.rules?.label ?? HOUSE_RULES_LABEL}
-            {report?.max_uses_per_source != null && report?.min_uses_per_source != null ? (
+            {report?.max_uses_per_source != null && report.min_uses_per_source === 1 && report.max_uses_per_source === 1 ? (
+              <span className="text-white/35"> · official</span>
+            ) : report?.max_uses_per_source != null && report?.min_uses_per_source != null ? (
               <span className="text-white/35">
                 {" "}· this build {report.min_uses_per_source}–{report.max_uses_per_source}×
               </span>
@@ -533,7 +544,7 @@ export function MosaicExplorer() {
       {/* first-visit hint */}
       {status === "ready" && showHint && !hovered && (
         <div className="pointer-events-none absolute bottom-16 left-1/2 z-20 -translate-x-1/2 animate-in rounded-full border border-white/10 bg-black/60 px-4 py-2 text-[11px] tracking-wide whitespace-nowrap text-white/80 backdrop-blur fade-in duration-700 sm:bottom-6">
-          Scroll or pinch to zoom · every photo used · none more than 4×
+          Scroll or pinch to zoom · every photograph once
         </div>
       )}
 

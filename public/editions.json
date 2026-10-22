@@ -27,11 +27,11 @@
       },
       "counts": {
         "allUnique": 1378,
-        "allTiles": 4096,
+        "allTiles": 1380,
         "canonUnique": 226,
-        "canonTiles": 900
+        "canonTiles": 234
       },
-      "note": "Edition 1. House rules: every eligible photograph appears at least once, and no photograph is used more than 4\u00d7. Film Canon was rebuilt under those rules (smaller grid than All). All and Film Canon used the same target portrait for this edition; future editions can pick different homage stills for each mode."
+      "note": "Edition 1. House rule: every photograph once (none reused). Near-square grids; empty cells when the count cannot tile cleanly. Studio lets visitors prompt shareable 1\u00d7 mosaics."
     }
   ]
 }

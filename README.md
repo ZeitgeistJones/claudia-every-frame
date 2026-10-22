@@ -18,15 +18,14 @@ Claudia by anabology.
 
 ## House rules
 
-* Every eligible photograph appears **at least once**
-* No photograph is used more than **4×**
-* The builder shrinks the grid when needed so those caps hold (Film Canon has fewer sources, so fewer tiles than All)
+* Every eligible photograph appears **exactly once** (no reuse)
+* The grid is factored to match the source count (All and Film Canon differ in size)
+* **Official editions** are curated on the site; **Studio** lets anyone prompt a Claudia-related homage and share a link (same 1× rule, browser-built preview)
 
 ## Current build
 
-* All: 1,378 of 1,378 photographs · 64 × 64 = 4,096 tiles · uses 1–4× each
-* Film Canon: 226 of 226 photographs · grid fitted under the same max-4 rule
-* Tile size 320 × 180 px; target portrait `ev-14-dist.dist-cu.3`
+* Official All / Film Canon: each photograph once · deep-zoom DZI
+* Studio: prompt → filter (must be Claudia-related & appropriate) → shareable 1× mosaic
 
 ## Run the viewer locally
 
@@ -39,8 +38,9 @@ npm run dev        # http://localhost:4317
 
 ```bash
 python3 -m venv .venv && .venv/bin/pip install -r pipeline/requirements.txt
-.venv/bin/python pipeline/build_mosaic.py                                 # all her===true → public/mosaic
-.venv/bin/python pipeline/build_mosaic.py --canon --out public/mosaic-canon
+.venv/bin/python pipeline/build_mosaic.py --max-uses 1                    # all her===true → public/mosaic
+.venv/bin/python pipeline/build_mosaic.py --canon --max-uses 1 --out public/mosaic-canon
+.venv/bin/python pipeline/build_catalog.py                                # Studio catalog for /studio
 ```
 
 The builder refreshes the gallery index, downloads only new images, and

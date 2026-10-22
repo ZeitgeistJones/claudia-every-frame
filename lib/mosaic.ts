@@ -71,7 +71,7 @@ export interface MosaicReport {
 }
 
 /** House rules shown on the site — hard caps the mosaic builder also enforces. */
-export const HOUSE_RULES_LABEL = "every photograph · max 4× each";
+export const HOUSE_RULES_LABEL = "every photograph once · none reused";
 
 export interface EditionTargets {
   all: string;

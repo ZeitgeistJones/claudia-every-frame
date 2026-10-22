@@ -3,20 +3,20 @@
   "eligible_in_gallery": 226,
   "sources_loaded": 226,
   "unique_sources_placed": 226,
-  "total_tiles": 900,
-  "max_uses_per_source": 4,
-  "min_uses_per_source": 2,
+  "total_tiles": 234,
+  "max_uses_per_source": 1,
+  "min_uses_per_source": 1,
   "rules": {
     "every_photo_at_least_once": true,
-    "max_uses_per_photo": 4,
-    "label": "every photograph \u00b7 max 4\u00d7 each"
+    "max_uses_per_photo": 1,
+    "label": "every photograph once \u00b7 none reused"
   },
-  "full_resolution": "9600x5400",
+  "full_resolution": "4160x3240",
   "full_file": "claudia-mosaic-full.jpg",
-  "full_bytes": 8542362,
-  "x_resolution": "2048x1152",
+  "full_bytes": 2133642,
+  "x_resolution": "2048x1595",
   "x_file": "claudia-mosaic-x.jpg",
-  "x_bytes": 1301939,
+  "x_bytes": 1285303,
   "target": "ev-14-dist.dist-cu.3",
   "failures": {},
   "params": {
@@ -37,7 +37,7 @@
     "beta": 0.2,
     "face_boost": 3.0,
     "edge_boost": 1.5,
-    "max_uses": 4,
+    "max_uses": 1,
     "radius": 4,
     "quality": 86,
     "x_width": 2048,
@@ -46,5 +46,5 @@
     "no_dzi": false,
     "no_refresh": true
   },
-  "seconds": 6.6
+  "seconds": 2.5
 }

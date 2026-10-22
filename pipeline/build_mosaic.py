@@ -145,16 +145,69 @@ def cost_matrix(tfeat: np.ndarray, sfeat: np.ndarray, chan_w: tuple[float, float
 # Hard house rules for every mosaic going forward:
 #   1. Every eligible photograph is used at least once.
 #   2. No photograph is used more than MAX_USES times.
-MAX_USES = 4
+# Official + Studio default is 1× — each still appears once (the "cooler" first cut).
+MAX_USES = 1
+
+
+def fit_grid_unique(n_sources: int, preferred_cols: int, preferred_rows: int) -> tuple[int, int]:
+    """
+    Grid for max_uses == 1: every photo once.
+    Prefer an exact factorisation with a sane aspect; otherwise a near-square
+    grid with a few empty cells (black gaps) — same spirit as the first cut.
+    """
+    import math
+
+    pref_aspect = preferred_cols / max(preferred_rows, 1)
+    exact: list[tuple[float, float, int, int]] = []
+    for a in range(1, int(math.sqrt(n_sources)) + 1):
+        if n_sources % a:
+            continue
+        b = n_sources // a
+        for cols, rows in ((a, b), (b, a)):
+            aspect = cols / rows
+            if 0.55 <= aspect <= 1.85:
+                exact.append((abs(aspect - pref_aspect), abs(cols - rows), cols, rows))
+    if exact:
+        exact.sort()
+        return exact[0][2], exact[0][3]
+
+    # Near-square with empties — never accept strip grids (bad aspect).
+    best: tuple[tuple[float, ...], int, int] | None = None
+    root = max(1, int(math.sqrt(n_sources)))
+    for rows in range(max(1, root - 40), root + 80):
+        cols = int(math.ceil(n_sources / rows))
+        cells = cols * rows
+        if cells < n_sources:
+            continue
+        aspect = cols / rows
+        if aspect < 0.65 or aspect > 1.55:
+            continue
+        waste = cells - n_sources
+        score = (float(waste), abs(aspect - pref_aspect), abs(cols - rows))
+        if best is None or score < best[0]:
+            best = (score, cols, rows)
+    if best is None:
+        raise SystemExit(f"cannot fit {n_sources} photos into a near-square 1× grid")
+    return best[1], best[2]
 
 
 def fit_grid(n_sources: int, preferred_cols: int, preferred_rows: int, max_uses: int = MAX_USES) -> tuple[int, int]:
     """
     Pick a cols×rows grid that can obey the house rules for n_sources photos.
-    Need n_sources <= cells <= max_uses * n_sources.
+    Need n_sources <= cells <= max_uses * n_sources (empties allowed when max_uses == 1).
     """
     if n_sources < 1:
         raise SystemExit("no sources to place")
+    if max_uses == 1:
+        cols, rows = fit_grid_unique(n_sources, preferred_cols, preferred_rows)
+        cells = cols * rows
+        if (cols, rows) != (preferred_cols, preferred_rows):
+            waste = cells - n_sources
+            extra = f", {waste} empty" if waste else ""
+            log(f"grid adjusted for house rules: {preferred_cols}x{preferred_rows} → {cols}x{rows} "
+                f"({cells} cells for {n_sources} photos, each once{extra})")
+        return cols, rows
+
     lo, hi = n_sources, max_uses * n_sources
     cols, rows = preferred_cols, preferred_rows
     cells = cols * rows
@@ -191,27 +244,45 @@ def assign(cost: np.ndarray, max_uses: int = MAX_USES) -> np.ndarray:
     Global assignment under hard house rules:
       - every source used ≥ 1
       - no source used > max_uses
+      - when max_uses == 1 and cells > sources, leftover cells stay empty (-1)
     """
     m, n = cost.shape
     if n > m:
         raise SystemExit(f"house rule broken: {n} photos > {m} tiles (every photo must appear)")
-    if m > max_uses * n:
+    if max_uses > 1 and m > max_uses * n:
         raise SystemExit(
             f"house rule broken: {m} tiles would force some photo above {max_uses}× "
             f"(max capacity {max_uses * n})"
         )
-    # First copy of every source is heavily preferred so all n are taken;
-    # remaining cells come from copies 2..max_uses only.
     big = float(cost.max()) * 10 + 1.0
-    blocks = [cost - big] + [cost] * (max_uses - 1)
-    full = np.concatenate(blocks, axis=1)
-    log(f"assignment: {m} cells × {n} sources, hard cap {max_uses}× each "
-        f"({full.shape[1]} candidate slots)")
-    rows_i, cols_i = linear_sum_assignment(full)
-    out = np.empty(m, np.int64)
-    out[rows_i] = cols_i % n
-    counts = np.bincount(out, minlength=n)
-    if int(counts.min()) < 1 or int((counts > 0).sum()) < n:
+    if max_uses == 1:
+        real = cost - big
+        if m > n:
+            # Prefer leaving low-importance cells empty (importance ≈ row mean cost).
+            row_imp = cost.mean(axis=1, keepdims=True)
+            empty = np.repeat(row_imp * (big * 0.05), m - n, axis=1)
+            full = np.concatenate([real, empty], axis=1)
+        else:
+            full = real
+        log(f"assignment: {m} cells × {n} sources, each once"
+            f"{f' · {m - n} empty slots' if m > n else ''}")
+        rows_i, cols_i = linear_sum_assignment(full)
+        out = np.full(m, -1, np.int64)
+        for r, c in zip(rows_i, cols_i):
+            if c < n:
+                out[r] = int(c)
+    else:
+        blocks = [cost - big] + [cost] * (max_uses - 1)
+        full = np.concatenate(blocks, axis=1)
+        log(f"assignment: {m} cells × {n} sources, hard cap {max_uses}× each "
+            f"({full.shape[1]} candidate slots)")
+        rows_i, cols_i = linear_sum_assignment(full)
+        out = np.empty(m, np.int64)
+        out[rows_i] = cols_i % n
+
+    placed = out[out >= 0]
+    counts = np.bincount(placed, minlength=n)
+    if int((counts > 0).sum()) < n or (n and int(counts.min()) < 1):
         missing = int(n - (counts > 0).sum())
         raise SystemExit(f"house rule broken: {missing} photos were not placed")
     if int(counts.max()) > max_uses:
@@ -225,6 +296,8 @@ def spread_repeats(a: np.ndarray, cost: np.ndarray, cols: int, rows: int, radius
     """Swap cells so the same photo is not repeated within `radius` cells."""
     pos = {}
     for idx, s in enumerate(a):
+        if int(s) < 0:
+            continue
         pos.setdefault(int(s), []).append(idx)
 
     def conflicts_at(idx: int, s: int, ignore: tuple[int, ...] = ()) -> bool:
@@ -239,19 +312,24 @@ def spread_repeats(a: np.ndarray, cost: np.ndarray, cols: int, rows: int, radius
 
     swaps = 0
     for _ in range(6):
-        bad = [i for i in range(len(a)) if conflicts_at(i, int(a[i]))]
+        bad = [i for i in range(len(a)) if int(a[i]) >= 0 and conflicts_at(i, int(a[i]))]
         if not bad:
             break
         rng.shuffle(bad)
         for i in bad:
             s = int(a[i])
-            if not conflicts_at(i, s):
+            if s < 0 or not conflicts_at(i, s):
                 continue
-            delta = cost[i, a] + cost[np.arange(len(a)), s] - cost[i, s] - cost[np.arange(len(a)), a]
+            # Only consider swaps with other filled cells
+            delta = np.full(len(a), np.inf)
+            filled = np.where(a >= 0)[0]
+            delta[filled] = (
+                cost[i, a[filled]] + cost[filled, s] - cost[i, s] - cost[filled, a[filled]]
+            )
             for j in np.argsort(delta)[:400]:
                 j = int(j)
                 t = int(a[j])
-                if j == i or t == s:
+                if j == i or t < 0 or t == s:
                     continue
                 # tentatively move s->j and t->i
                 if conflicts_at(j, s, ignore=(i,)) or conflicts_at(i, t, ignore=(j,)):
@@ -261,7 +339,7 @@ def spread_repeats(a: np.ndarray, cost: np.ndarray, cols: int, rows: int, radius
                 a[i], a[j] = t, s
                 swaps += 1
                 break
-    remaining = sum(1 for i in range(len(a)) if conflicts_at(i, int(a[i])))
+    remaining = sum(1 for i in range(len(a)) if int(a[i]) >= 0 and conflicts_at(i, int(a[i])))
     log(f"spread repeats: {swaps} swaps, {remaining} cells still near a duplicate")
     return remaining
 
@@ -352,14 +430,17 @@ def main() -> None:
     cost = base * weights[:, None]
     a = assign(cost, max_uses=max_uses)
     spread_repeats(a, cost, cols, rows, args.radius, rng)
-    counts = np.bincount(a, minlength=len(tiles))
-    if int(counts.min()) < 1 or int(counts.max()) > max_uses:
+    placed = a[a >= 0]
+    counts = np.bincount(placed, minlength=len(tiles))
+    if int((counts > 0).sum()) < len(tiles) or int(counts.min()) < 1 or int(counts.max()) > max_uses:
         raise SystemExit(
-            f"house rules failed after spread: min={int(counts.min())} max={int(counts.max())} "
-            f"(need min≥1, max≤{max_uses})"
+            f"house rules failed after spread: placed={(counts > 0).sum()}/{len(tiles)} "
+            f"min={int(counts.min())} max={int(counts.max())} (need all photos, max≤{max_uses})"
         )
+    empty_n = int((a < 0).sum())
     log(f"unique sources placed: {(counts > 0).sum()} / {len(tiles)}; "
-        f"uses {int(counts.min())}–{int(counts.max())} (cap {max_uses})")
+        f"uses {int(counts.min())}–{int(counts.max())} (cap {max_uses})"
+        + (f"; {empty_n} empty cells" if empty_n else ""))
 
     # ---- render
     log(f"rendering {W}x{H} ({cols}x{rows} tiles of {tw}x{th})")
@@ -371,6 +452,9 @@ def main() -> None:
     canvas = np.empty((H, W, 3), np.uint8)
     for idx in range(rows * cols):
         r, c = divmod(idx, cols)
+        if int(a[idx]) < 0:
+            canvas[r * th:(r + 1) * th, c * tw:(c + 1) * tw] = 0
+            continue
         tile_lab = to_lab(tiles[a[idx]])
         smean = tile_lab.reshape(-1, 3).mean(0)
         new_mean = smean + strength * (tmean[idx] - smean)
@@ -422,7 +506,11 @@ def main() -> None:
     rules = {
         "every_photo_at_least_once": True,
         "max_uses_per_photo": max_uses,
-        "label": f"every photograph · max {max_uses}× each",
+        "label": (
+            "every photograph once · none reused"
+            if max_uses == 1
+            else f"every photograph · max {max_uses}× each"
+        ),
     }
     mosaic = {
         "title": "Claudia — Every Frame",
