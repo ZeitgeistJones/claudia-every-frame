@@ -66,4 +66,11 @@ When a new film lands on claudia.gallery:
 .venv/bin/python pipeline/update_mosaic.py           # archive current, rebuild for newest film
 ```
 
+Backfill every film that is already on the gallery (Edition menu):
+
+```bash
+.venv/bin/python pipeline/build_editions_batch.py              # missing films only
+.venv/bin/python pipeline/build_editions_batch.py --promote dont-let-me-scroll
+```
+
 A weekly Vercel cron hits `/api/mosaic-check` (set `CRON_SECRET` in Vercel). That endpoint only *detects* a new film — rebuilding still runs via the Python pipeline (too big for Hobby serverless).
