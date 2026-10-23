@@ -1,14 +1,39 @@
 {
-  "current": "escape-velocity",
+  "current": "whitepill",
   "knownFilms": [
     "airplane-mode",
     "bliss",
     "clodyssey",
     "dont-let-me-scroll",
     "downforce",
-    "escape-velocity"
+    "escape-velocity",
+    "whitepill"
   ],
   "editions": [
+    {
+      "id": "whitepill",
+      "filmId": "whitepill",
+      "filmTitle": "WHITEPILL",
+      "label": "WHITEPILL",
+      "released": "October 2026",
+      "createdAt": "2026-10-23",
+      "homage": "Homage to WHITEPILL \u2014 All and Film Canon use stills from the new drop. No plate===true frames were tagged yet, so Film Canon\u2019s homage falls back to a her===true portrait; tiles are still Film Canon plates from the archive.",
+      "targets": {
+        "all": "wp-03-dress.e-p22.1",
+        "canon": "wp-03-dress.t-front.3"
+      },
+      "paths": {
+        "all": "/archives/whitepill/all",
+        "canon": "/archives/whitepill/canon"
+      },
+      "counts": {
+        "allUnique": 1444,
+        "allTiles": 1444,
+        "canonUnique": 226,
+        "canonTiles": 234
+      },
+      "note": "Edition for WHITEPILL. Every photograph once. Rebuild Film Canon homage when plates land."
+    },
     {
       "id": "dont-let-me-scroll",
       "filmId": "dont-let-me-scroll",

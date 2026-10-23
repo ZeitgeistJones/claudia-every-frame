@@ -92,22 +92,34 @@ def score_target(item: dict, *, prefer_plate: bool) -> float:
     return score
 
 
-def pick_target(items: list[dict], film_id: str, *, canon: bool) -> dict:
+def pick_target(items: list[dict], film_id: str, *, canon: bool, allow_her_fallback: bool = True) -> dict:
     """
     Pick a Claudia still from `film_id` to be the homage portrait.
 
     - All mode: any her===true image from that film (prefers CU/ECU, plates ok).
-    - Film Canon: her===true && plate===true from that film only.
+    - Film Canon: her===true && plate===true from that film; if the film has no
+      plates yet (brand-new drop), fall back to the best her===true still.
     """
     pool = [it for it in items if it.get("film") == film_id and it.get("her") is True]
+    used_fallback = False
     if canon:
-        pool = [it for it in pool if it.get("plate") is True]
+        plates = [it for it in pool if it.get("plate") is True]
+        if plates:
+            pool = plates
+        elif allow_her_fallback and pool:
+            used_fallback = True
+        else:
+            raise ValueError(f"no usable plate images for film {film_id!r}")
     if not pool:
         raise ValueError(
             f"no usable {'plate' if canon else 'her'} images for film {film_id!r}"
         )
-    ranked = sorted(pool, key=lambda it: score_target(it, prefer_plate=canon), reverse=True)
-    return ranked[0]
+    ranked = sorted(pool, key=lambda it: score_target(it, prefer_plate=canon and not used_fallback), reverse=True)
+    pick = ranked[0]
+    if used_fallback:
+        pick = dict(pick)
+        pick["_canon_her_fallback"] = True
+    return pick
 
 
 def pick_target_pair(items: list[dict], film_id: str) -> tuple[dict, dict]:
@@ -115,7 +127,8 @@ def pick_target_pair(items: list[dict], film_id: str) -> tuple[dict, dict]:
     Pick All + Film Canon homage stills for a film.
 
     Prefers two DIFFERENT images when the film has another strong option for All
-    (within a score margin of the top pick). Film Canon always stays a real plate.
+    (within a score margin of the top pick). Film Canon prefers a real plate;
+    if none exist yet, both modes may share (or split) her===true stills.
     """
     canon = pick_target(items, film_id, canon=True)
     all_pool = [it for it in items if it.get("film") == film_id and it.get("her") is True]

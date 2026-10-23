@@ -80,6 +80,8 @@ def run_build(*, out: Path, target: str, canon: bool) -> None:
         str(ROOT / ".venv/bin/python"),
         str(ROOT / "pipeline/build_mosaic.py"),
         "--no-refresh",
+        "--max-uses",
+        "1",
         "--target",
         target,
         "--out",
@@ -149,6 +151,8 @@ def main() -> None:
 
     log(f"All target:        {target_all_item['id']}  framing={target_all_item.get('framing')} plate={target_all_item.get('plate')}")
     log(f"Film Canon target: {target_canon_item['id']}  framing={target_canon_item.get('framing')} plate={target_canon_item.get('plate')}")
+    if target_canon_item.get("_canon_her_fallback"):
+        log("note: this film has no plate===true stills yet — Film Canon homage falls back to best her===true")
     if target_all_item["id"] == target_canon_item["id"]:
         log("note: both modes landed on the same still — rare, but ok")
     else:

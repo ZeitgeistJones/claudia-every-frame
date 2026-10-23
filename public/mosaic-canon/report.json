@@ -13,11 +13,11 @@
   },
   "full_resolution": "4160x3240",
   "full_file": "claudia-mosaic-full.jpg",
-  "full_bytes": 2133642,
+  "full_bytes": 2241357,
   "x_resolution": "2048x1595",
   "x_file": "claudia-mosaic-x.jpg",
-  "x_bytes": 1285303,
-  "target": "ev-14-dist.dist-cu.3",
+  "x_bytes": 1340036,
+  "target": "wp-03-dress.t-front.3",
   "failures": {},
   "params": {
     "cols": 64,
@@ -27,7 +27,7 @@
     "gx": 8,
     "gy": 5,
     "size": "s",
-    "target": "ev-14-dist.dist-cu.3",
+    "target": "wp-03-dress.t-front.3",
     "target_anchor": 0.4,
     "canon": true,
     "limit": 0,
@@ -41,10 +41,10 @@
     "radius": 4,
     "quality": 86,
     "x_width": 2048,
-    "out": "public/mosaic-canon",
+    "out": "/workspace/public/mosaic-canon",
     "seed": 7,
     "no_dzi": false,
     "no_refresh": true
   },
-  "seconds": 2.5
+  "seconds": 2.3
 }
