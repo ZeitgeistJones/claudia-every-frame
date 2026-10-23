@@ -1,9 +1,9 @@
 """
 Build an homage edition archive for every film currently on claudia.gallery.
 
-Does NOT change the live public/mosaic folders unless --promote <film-id>.
+Does NOT change the live public/mosaic folder unless --promote <film-id>.
 Each film gets:
-  - All + Film Canon mosaics under public/archives/<film-id>/
+  - mosaic under public/archives/<film-id>/all/
   - an editions.json entry (Edition menu)
 
 Usage
@@ -46,7 +46,7 @@ def fetch_films() -> list[dict]:
     return films
 
 
-def run_build(*, out: Path, target: str, canon: bool) -> None:
+def run_build(*, out: Path, target: str) -> None:
     if out.exists():
         shutil.rmtree(out)
     out.mkdir(parents=True)
@@ -61,18 +61,14 @@ def run_build(*, out: Path, target: str, canon: bool) -> None:
         "--out",
         str(out),
     ]
-    if canon:
-        cmd.append("--canon")
     log(" ".join(cmd))
     subprocess.check_call(cmd, cwd=str(ROOT))
 
 
-def register_from_archive(film: dict, target_all: str, target_canon: str, *, make_current: bool) -> dict:
-    """Register edition counts from the archive folders (not live)."""
+def register_from_archive(film: dict, target_all: str, *, make_current: bool) -> dict:
     edition_id = film["id"]
     arch = editions.ARCHIVES / edition_id
     all_counts = editions.read_counts(arch / "all")
-    canon_counts = editions.read_counts(arch / "canon")
     data = editions.load_editions()
     entry = {
         "id": edition_id,
@@ -81,25 +77,16 @@ def register_from_archive(film: dict, target_all: str, target_canon: str, *, mak
         "label": film.get("title") or film["id"],
         "released": film.get("released"),
         "createdAt": __import__("datetime").date.today().isoformat(),
-        "homage": (
-            f"Homage to {film.get('title') or film['id']} — "
-            f"All target {target_all}; Film Canon target {target_canon}."
-        ),
-        "targets": {"all": target_all, "canon": target_canon},
-        "paths": {
-            "all": f"/archives/{edition_id}/all",
-            "canon": f"/archives/{edition_id}/canon",
-        },
+        "homage": f"Homage to {film.get('title') or film['id']} — portrait {target_all}.",
+        "targets": {"all": target_all},
+        "paths": {"all": f"/archives/{edition_id}/all"},
         "counts": {
             "allUnique": all_counts.get("unique"),
             "allTiles": all_counts.get("tiles"),
-            "canonUnique": canon_counts.get("unique"),
-            "canonTiles": canon_counts.get("tiles"),
         },
-        "note": "Each photograph once. All and Film Canon may use different homage stills from this film.",
+        "note": "Every photograph once · none reused.",
     }
     editions_list = [e for e in data.get("editions", []) if e.get("id") != edition_id]
-    # Keep gallery order: oldest → newest in the menu feels wrong; put newest first.
     editions_list.insert(0, entry)
     data["editions"] = editions_list
     known = set(data.get("knownFilms") or [])
@@ -113,16 +100,14 @@ def register_from_archive(film: dict, target_all: str, target_canon: str, *, mak
 
 def promote_to_live(film_id: str) -> None:
     arch = editions.ARCHIVES / film_id
-    if not (arch / "all").exists() or not (arch / "canon").exists():
+    if not (arch / "all").exists():
         raise SystemExit(f"cannot promote {film_id}: archive incomplete")
-    for live, name in ((editions.CURRENT_ALL, "all"), (editions.CURRENT_CANON, "canon")):
-        if live.exists():
-            shutil.rmtree(live)
-        shutil.copytree(arch / name, live)
+    if editions.CURRENT_ALL.exists():
+        shutil.rmtree(editions.CURRENT_ALL)
+    shutil.copytree(arch / "all", editions.CURRENT_ALL)
     data = editions.load_editions()
     data["current"] = film_id
     editions.save_editions(data)
-    # Refresh OG from All
     from update_mosaic import write_og_from  # noqa: E402
 
     write_og_from(editions.CURRENT_ALL / "claudia-mosaic-x.jpg", editions.PUBLIC / "og.jpg")
@@ -161,41 +146,28 @@ def main() -> None:
     for film in todo:
         fid = film["id"]
         log(f"=== {fid} ({film.get('title')}) ===")
-        all_t, canon_t = editions.pick_target_pair(items, fid)
-        log(f"All target:        {all_t['id']}  framing={all_t.get('framing')} plate={all_t.get('plate')}")
-        log(f"Film Canon target: {canon_t['id']}  framing={canon_t.get('framing')} plate={canon_t.get('plate')}")
+        all_t = editions.pick_target(items, fid, canon=False)
+        log(f"homage target: {all_t['id']}  framing={all_t.get('framing')} plate={all_t.get('plate')}")
         if args.dry_run:
             continue
 
         tmp_all = WORK / fid / "all"
-        tmp_canon = WORK / fid / "canon"
-        run_build(out=tmp_all, target=all_t["id"], canon=False)
-        run_build(out=tmp_canon, target=canon_t["id"], canon=True)
+        run_build(out=tmp_all, target=all_t["id"])
 
         dest = editions.ARCHIVES / fid
         if dest.exists():
             shutil.rmtree(dest)
         dest.mkdir(parents=True)
         shutil.copytree(tmp_all, dest / "all")
-        shutil.copytree(tmp_canon, dest / "canon")
         (dest / "meta.json").write_text(
             json.dumps(
-                {
-                    "id": fid,
-                    "targets": {"all": all_t["id"], "canon": canon_t["id"]},
-                    "title": film.get("title"),
-                },
+                {"id": fid, "targets": {"all": all_t["id"]}, "title": film.get("title")},
                 indent=2,
             )
             + "\n"
         )
-        entry = register_from_archive(
-            film,
-            all_t["id"],
-            canon_t["id"],
-            make_current=False,
-        )
-        log(f"archived + registered {entry['id']}  allTiles={entry['counts']['allTiles']} canonTiles={entry['counts']['canonTiles']}")
+        entry = register_from_archive(film, all_t["id"], make_current=False)
+        log(f"archived + registered {entry['id']}  allTiles={entry['counts']['allTiles']}")
 
     if args.promote:
         if args.dry_run:
@@ -203,7 +175,6 @@ def main() -> None:
         else:
             promote_to_live(args.promote)
 
-    # Stable menu order: gallery order, newest first
     data = editions.load_editions()
     order = {f["id"]: i for i, f in enumerate(films)}
     data["editions"] = sorted(

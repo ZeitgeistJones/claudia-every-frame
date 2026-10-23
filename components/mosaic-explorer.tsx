@@ -12,11 +12,9 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import {
   HOUSE_RULES_LABEL,
-  MODES,
   editionBase,
   type Edition,
   type EditionsFile,
-  type ModeKey,
   type MosaicData,
   type MosaicReport,
   type MosaicSource,
@@ -54,7 +52,6 @@ export function MosaicExplorer() {
   const hoverCellRef = useRef<number>(-1);
   const selectCellRef = useRef<number>(-1);
 
-  const [mode, setMode] = useState<ModeKey>("all");
   const [data, setData] = useState<MosaicData | null>(null);
   const [report, setReport] = useState<MosaicReport | null>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
@@ -71,8 +68,8 @@ export function MosaicExplorer() {
   const activeEdition: Edition | null =
     editions?.editions.find((e) => e.id === editionId) ?? editions?.editions[0] ?? null;
   const base = activeEdition
-    ? editionBase(activeEdition, mode, editions?.current ?? null)
-    : mode === "all" ? "/mosaic" : "/mosaic-canon";
+    ? editionBase(activeEdition, editions?.current ?? null)
+    : "/mosaic";
 
   // ---------- geometry helpers (image px <-> screen px)
 
@@ -266,15 +263,15 @@ export function MosaicExplorer() {
           filmId: "live",
           filmTitle: "Current",
           label: "Current",
-          targets: { all: "", canon: "" },
-          paths: { all: "/mosaic", canon: "/mosaic-canon" },
+          targets: { all: "" },
+          paths: { all: "/mosaic" },
         }] });
         setEditionId("live");
       });
     return () => { cancelled = true; };
   }, []);
 
-  // ---------- load mosaic data + tiles for the current mode
+  // ---------- load mosaic data + tiles for the current edition
 
   useEffect(() => {
     let cancelled = false;
@@ -335,17 +332,6 @@ export function MosaicExplorer() {
     } else {
       wrapperRef.current?.requestFullscreen().catch((e: unknown) => console.error("[mosaic] fullscreen", e));
     }
-  };
-
-  const changeMode = (k: ModeKey) => {
-    if (k === mode) return;
-    setStatus("loading");
-    setPicked(null);
-    setHovered(null);
-    hoverCellRef.current = -1;
-    selectCellRef.current = -1;
-    refreshBoxes();
-    setMode(k);
   };
 
   const changeEdition = (id: string) => {
@@ -428,23 +414,6 @@ export function MosaicExplorer() {
                 </select>
               </label>
             )}
-            <div role="radiogroup" aria-label="Source photographs" className="flex rounded-full border border-white/12 bg-black/50 p-0.5 text-[11px] backdrop-blur">
-              {(Object.keys(MODES) as ModeKey[]).map((k) => (
-                <button
-                  key={k}
-                  role="radio"
-                  aria-checked={mode === k}
-                  title={MODES[k].label}
-                  onClick={() => changeMode(k)}
-                  className={`rounded-full px-3 py-1.5 tracking-wide transition-colors ${
-                    mode === k ? "bg-[#D97757] font-semibold text-[#1b1210]" : "text-white/70 hover:text-white"
-                  }`}
-                >
-                  {MODES[k].short}
-                </button>
-              ))}
-            </div>
-
             <a
               href={`${base}/claudia-mosaic-x.jpg`}
               download="claudia-mosaic-x.jpg"
@@ -518,9 +487,6 @@ export function MosaicExplorer() {
           {activeEdition?.homage && (
             <p className="mt-1 max-w-xl text-[10.5px] leading-snug tracking-wide text-white/40">
               {activeEdition.homage}
-              {activeEdition.targets.all && activeEdition.targets.canon && activeEdition.targets.all !== activeEdition.targets.canon && (
-                <span className="text-white/30"> · All & Film Canon use different homage stills</span>
-              )}
             </p>
           )}
           <p className="pointer-events-auto mt-1 text-[10.5px] tracking-wide text-white/45">

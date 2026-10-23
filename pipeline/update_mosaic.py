@@ -5,11 +5,8 @@ What it does
   1. Reads https://claudia.gallery/api/films.json + images.json
   2. Finds the newest film that does not yet have an edition (or uses --film)
   3. Archives the current live mosaics into public/archives/<old-id>/
-  4. Picks TWO homage targets from the new film:
-       - All:        best her===true still (usually a CU)
-       - Film Canon: best her===true && plate===true still
-     These can be different images on purpose.
-  5. Rebuilds public/mosaic and public/mosaic-canon, regenerates og.jpg
+  4. Picks a homage target from the new film (best her===true still, usually a CU)
+  5. Rebuilds public/mosaic (All photographs, each once), regenerates og.jpg
   6. Updates public/editions.json
 
 This is intentionally a local/CI job — not a Vercel Hobby cron.
@@ -99,8 +96,7 @@ def main() -> None:
     ap.add_argument("--film", help="force a specific film id")
     ap.add_argument("--dry-run", action="store_true", help="pick targets but do not rebuild")
     ap.add_argument("--skip-archive", action="store_true", help="do not archive the current live mosaics")
-    ap.add_argument("--target-all", help="override All homage image id")
-    ap.add_argument("--target-canon", help="override Film Canon homage image id")
+    ap.add_argument("--target-all", help="override homage image id")
     args = ap.parse_args()
 
     films = fetch_films()
@@ -135,30 +131,15 @@ def main() -> None:
     log(f"homage film: {film['id']} ({film.get('title')})")
     items = fetch.fetch_index(refresh=True)
 
-    if args.target_all or args.target_canon:
+    if args.target_all:
+        target_all_item = next((it for it in items if it["id"] == args.target_all), None)
+        if not target_all_item:
+            raise SystemExit(f"--target-all {args.target_all} not in gallery")
+    else:
         target_all_item = editions.pick_target(items, film["id"], canon=False)
-        target_canon_item = editions.pick_target(items, film["id"], canon=True)
-        if args.target_all:
-            target_all_item = next((it for it in items if it["id"] == args.target_all), None)
-            if not target_all_item:
-                raise SystemExit(f"--target-all {args.target_all} not in gallery")
-        if args.target_canon:
-            target_canon_item = next((it for it in items if it["id"] == args.target_canon), None)
-            if not target_canon_item:
-                raise SystemExit(f"--target-canon {args.target_canon} not in gallery")
-    else:
-        target_all_item, target_canon_item = editions.pick_target_pair(items, film["id"])
 
-    log(f"All target:        {target_all_item['id']}  framing={target_all_item.get('framing')} plate={target_all_item.get('plate')}")
-    log(f"Film Canon target: {target_canon_item['id']}  framing={target_canon_item.get('framing')} plate={target_canon_item.get('plate')}")
-    if target_canon_item.get("_canon_her_fallback"):
-        log("note: this film has no plate===true stills yet — Film Canon homage falls back to best her===true")
-    if target_all_item["id"] == target_canon_item["id"]:
-        log("note: both modes landed on the same still — rare, but ok")
-    else:
-        log("All and Film Canon will be DIFFERENT homage portraits")
-
-    status["targets"] = {"all": target_all_item["id"], "canon": target_canon_item["id"]}
+    log(f"homage target: {target_all_item['id']}  framing={target_all_item.get('framing')} plate={target_all_item.get('plate')}")
+    status["targets"] = {"all": target_all_item["id"]}
 
     if args.dry_run:
         print(json.dumps(status, indent=2))
@@ -170,14 +151,11 @@ def main() -> None:
         log(f"archiving current edition {prev!r}")
         editions.archive_current(prev)
 
-    # Rebuild live folders
+    # Rebuild live All mosaic only (Film Canon UI retired)
     if editions.CURRENT_ALL.exists():
         shutil.rmtree(editions.CURRENT_ALL)
-    if editions.CURRENT_CANON.exists():
-        shutil.rmtree(editions.CURRENT_CANON)
 
     run_build(out=editions.CURRENT_ALL, target=target_all_item["id"], canon=False)
-    run_build(out=editions.CURRENT_CANON, target=target_canon_item["id"], canon=True)
 
     # X card from the All mosaic
     write_og_from(editions.CURRENT_ALL / "claudia-mosaic-x.jpg", editions.PUBLIC / "og.jpg")
@@ -187,7 +165,6 @@ def main() -> None:
     entry = editions.upsert_edition(
         film=film,
         target_all=target_all_item["id"],
-        target_canon=target_canon_item["id"],
         make_current=True,
     )
     log(f"archiving new edition {entry['id']!r}")

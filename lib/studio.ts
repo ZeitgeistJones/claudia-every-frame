@@ -1,7 +1,7 @@
 // Studio: prompt → Claudia-related + appropriate filter → 1× browser mosaic → share link.
 // Official editions stay in the deep-zoom explorer; Studio is the participatory layer.
 
-import { GALLERY, type ModeKey } from "@/lib/mosaic";
+import { GALLERY } from "@/lib/mosaic";
 
 export const STUDIO_RULES_LABEL = "every photograph once · none reused";
 
@@ -36,7 +36,6 @@ export interface PromptVerdict {
 export interface ShareParams {
   prompt: string;
   target: string;
-  mode: ModeKey;
   seed: number;
 }
 
@@ -44,7 +43,7 @@ const BLOCK =
   /\b(nsfw|nude|naked|porn|sex|sexual|explicit|gore|blood|kill|murder|rape|slur|hate|racist|nazi|suicide|self[- ]?harm)\b/i;
 
 const CLAUDIA_HINT =
-  /\b(claudia|\$claudia|anabology|claudia\.gallery|escape velocity|clodyssey|bliss|airplane mode|downforce|don'?t let me scroll|film|portrait|homage|still|lookbook)\b/i;
+  /\b(claudia|\$claudia|anabology|claudia\.gallery|escape velocity|clodyssey|bliss|airplane mode|downforce|don'?t let me scroll|whitepill|white pill|film|portrait|homage|still|lookbook)\b/i;
 
 /** Fast offline filter used when AI Gateway is unavailable. */
 export function heuristicPromptFilter(raw: string): PromptVerdict {
@@ -55,7 +54,6 @@ export function heuristicPromptFilter(raw: string): PromptVerdict {
   if (BLOCK.test(prompt)) {
     return { ok: false, reason: "That prompt isn’t appropriate for this studio. Keep it Claudia-related and clean." };
   }
-  // Must clearly be about Claudia / the films / a portrait homage.
   if (!CLAUDIA_HINT.test(prompt) && !/\b(her face|her look|close[- ]?up|portrait of her)\b/i.test(prompt)) {
     return {
       ok: false,
@@ -84,6 +82,7 @@ function extractTags(prompt: string): string[] {
     [/race|car|downforce|speed/, "downforce"],
     [/space|orbit|escape|velocity/, "escape-velocity"],
     [/odyssey|clodyssey/, "clodyssey"],
+    [/white\s*pill|whitepill/, "whitepill"],
   ] as const) {
     if (re.test(lower)) tags.push(tag);
   }
@@ -104,20 +103,17 @@ export function scoreTarget(item: CatalogItem, tags: string[], prompt: string): 
   if (tags.includes("ECU") && framing === "ECU") s += 25;
   if (tags.includes("warm") && (item.lab[0] > 55 || item.lab[1] > 5)) s += 10;
   if (tags.includes("cool") && item.lab[0] < 45) s += 10;
-  // Slight preference for front-facing look names when prompt asks for portrait.
   if (/\bportrait|face|looking\b/i.test(prompt) && framing === "CU") s += 12;
   return s;
 }
 
-export function pickTarget(items: CatalogItem[], mode: ModeKey, prompt: string, tags: string[], seed: number): CatalogItem {
-  const pool = mode === "canon" ? items.filter((i) => i.plate) : items;
-  if (!pool.length) throw new Error("No photographs available for this mode");
-  const ranked = [...pool].sort((a, b) => {
+export function pickTarget(items: CatalogItem[], prompt: string, tags: string[], seed: number): CatalogItem {
+  if (!items.length) throw new Error("No photographs available");
+  const ranked = [...items].sort((a, b) => {
     const d = scoreTarget(b, tags, prompt) - scoreTarget(a, tags, prompt);
     if (d !== 0) return d;
     return a.id.localeCompare(b.id);
   });
-  // Among the top tier, pick deterministically from seed so shares stay stable.
   const topScore = scoreTarget(ranked[0], tags, prompt);
   const top = ranked.filter((i) => scoreTarget(i, tags, prompt) >= topScore - 5);
   return top[Math.abs(seed) % top.length];
@@ -164,7 +160,6 @@ export function encodeShare(params: ShareParams): string {
   const q = new URLSearchParams({
     p: params.prompt,
     t: params.target,
-    m: params.mode,
     s: String(params.seed),
   });
   return `/studio?${q.toString()}`;
@@ -174,13 +169,11 @@ export function decodeShare(search: string): Partial<ShareParams> {
   const q = new URLSearchParams(search.startsWith("?") ? search : `?${search}`);
   const prompt = q.get("p") || undefined;
   const target = q.get("t") || undefined;
-  const mode = q.get("m") === "canon" ? "canon" : q.get("m") === "all" ? "all" : undefined;
   const seedRaw = q.get("s");
   const seed = seedRaw != null && seedRaw !== "" ? Number(seedRaw) : undefined;
   return {
     prompt,
     target,
-    mode,
     seed: Number.isFinite(seed) ? seed : undefined,
   };
 }
@@ -203,7 +196,6 @@ export function assignOnce(
   if (m < n) throw new Error("grid smaller than source count");
   const used = new Uint8Array(n);
   const out = new Array<number>(m).fill(-1);
-  // Fill the most distinctive cells first (higher chroma / mid luminance).
   const order = cellLabs
     .map((lab, i) => ({ i, key: Math.abs(lab[1]) + Math.abs(lab[2]) + (50 - Math.abs(lab[0] - 50)) }))
     .sort((a, b) => b.key - a.key)
@@ -228,14 +220,4 @@ export function assignOnce(
     placed++;
   }
   return out;
-}
-
-export function mulberry32(seed: number): () => number {
-  let t = seed >>> 0;
-  return () => {
-    t += 0x6d2b79f5;
-    let r = Math.imul(t ^ (t >>> 15), 1 | t);
-    r ^= r + Math.imul(r ^ (r >>> 7), 61 | r);
-    return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
-  };
 }

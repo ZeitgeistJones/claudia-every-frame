@@ -17,22 +17,18 @@
       "label": "WHITEPILL",
       "released": "October 2026",
       "createdAt": "2026-10-23",
-      "homage": "Homage to WHITEPILL \u2014 All and Film Canon use stills from the new drop. No plate===true frames were tagged yet, so Film Canon\u2019s homage falls back to a her===true portrait; tiles are still Film Canon plates from the archive.",
+      "homage": "Homage to WHITEPILL \u2014 portrait wp-03-dress.e-p22.1.",
       "targets": {
-        "all": "wp-03-dress.e-p22.1",
-        "canon": "wp-03-dress.t-front.3"
+        "all": "wp-03-dress.e-p22.1"
       },
       "paths": {
-        "all": "/archives/whitepill/all",
-        "canon": "/archives/whitepill/canon"
+        "all": "/archives/whitepill/all"
       },
       "counts": {
         "allUnique": 1444,
-        "allTiles": 1444,
-        "canonUnique": 226,
-        "canonTiles": 234
+        "allTiles": 1444
       },
-      "note": "Edition for WHITEPILL. Every photograph once. Rebuild Film Canon homage when plates land."
+      "note": "Every photograph once \u00b7 none reused."
     },
     {
       "id": "dont-let-me-scroll",
@@ -41,22 +37,18 @@
       "label": "DON'T LET ME SCROLL",
       "released": "October 2026",
       "createdAt": "2026-10-22",
-      "homage": "Homage to DON'T LET ME SCROLL \u2014 All target sc-02-perf.R03.3; Film Canon target sc-02-perf.R27.1.",
+      "homage": "Homage to DON'T LET ME SCROLL \u2014 portrait sc-02-perf.R03.3.",
       "targets": {
-        "all": "sc-02-perf.R03.3",
-        "canon": "sc-02-perf.R27.1"
+        "all": "sc-02-perf.R03.3"
       },
       "paths": {
-        "all": "/archives/dont-let-me-scroll/all",
-        "canon": "/archives/dont-let-me-scroll/canon"
+        "all": "/archives/dont-let-me-scroll/all"
       },
       "counts": {
         "allUnique": 1378,
-        "allTiles": 1380,
-        "canonUnique": 226,
-        "canonTiles": 234
+        "allTiles": 1380
       },
-      "note": "Each photograph once. All and Film Canon may use different homage stills from this film."
+      "note": "Every photograph once \u00b7 none reused."
     },
     {
       "id": "downforce",
@@ -65,22 +57,18 @@
       "label": "DOWNFORCE",
       "released": "October 2026",
       "createdAt": "2026-10-22",
-      "homage": "Homage to DOWNFORCE \u2014 All target rh-02-plates.id-face.1; Film Canon target rh-02-plates.g05.2.",
+      "homage": "Homage to DOWNFORCE \u2014 portrait rh-02-plates.id-face.1.",
       "targets": {
-        "all": "rh-02-plates.id-face.1",
-        "canon": "rh-02-plates.g05.2"
+        "all": "rh-02-plates.id-face.1"
       },
       "paths": {
-        "all": "/archives/downforce/all",
-        "canon": "/archives/downforce/canon"
+        "all": "/archives/downforce/all"
       },
       "counts": {
         "allUnique": 1378,
-        "allTiles": 1380,
-        "canonUnique": 226,
-        "canonTiles": 234
+        "allTiles": 1380
       },
-      "note": "Each photograph once. All and Film Canon may use different homage stills from this film."
+      "note": "Every photograph once \u00b7 none reused."
     },
     {
       "id": "airplane-mode",
@@ -89,22 +77,18 @@
       "label": "AIRPLANE MODE",
       "released": "October 2026",
       "createdAt": "2026-10-22",
-      "homage": "Homage to AIRPLANE MODE \u2014 All target am-14.s-headset-up-adult-b.1; Film Canon target am-19.b02-wink.2.",
+      "homage": "Homage to AIRPLANE MODE \u2014 portrait am-14.s-headset-up-adult-b.1.",
       "targets": {
-        "all": "am-14.s-headset-up-adult-b.1",
-        "canon": "am-19.b02-wink.2"
+        "all": "am-14.s-headset-up-adult-b.1"
       },
       "paths": {
-        "all": "/archives/airplane-mode/all",
-        "canon": "/archives/airplane-mode/canon"
+        "all": "/archives/airplane-mode/all"
       },
       "counts": {
         "allUnique": 1378,
-        "allTiles": 1380,
-        "canonUnique": 226,
-        "canonTiles": 234
+        "allTiles": 1380
       },
-      "note": "Each photograph once. All and Film Canon may use different homage stills from this film."
+      "note": "Every photograph once \u00b7 none reused."
     },
     {
       "id": "bliss",
@@ -113,22 +97,18 @@
       "label": "BLISS",
       "released": "October 2026",
       "createdAt": "2026-10-22",
-      "homage": "Homage to BLISS \u2014 All target xp-03-her.her-tile-window.3; Film Canon target xp-03-her.her-tile.1.",
+      "homage": "Homage to BLISS \u2014 portrait xp-03-her.her-tile-window.3.",
       "targets": {
-        "all": "xp-03-her.her-tile-window.3",
-        "canon": "xp-03-her.her-tile.1"
+        "all": "xp-03-her.her-tile-window.3"
       },
       "paths": {
-        "all": "/archives/bliss/all",
-        "canon": "/archives/bliss/canon"
+        "all": "/archives/bliss/all"
       },
       "counts": {
         "allUnique": 1378,
-        "allTiles": 1380,
-        "canonUnique": 226,
-        "canonTiles": 234
+        "allTiles": 1380
       },
-      "note": "Each photograph once. All and Film Canon may use different homage stills from this film."
+      "note": "Every photograph once \u00b7 none reused."
     },
     {
       "id": "clodyssey",
@@ -137,22 +117,18 @@
       "label": "CLODYSSEY",
       "released": "September 2026",
       "createdAt": "2026-10-22",
-      "homage": "Homage to CLODYSSEY \u2014 All target sp-04-end.chrome-ear.3; Film Canon target sp-09-review.her-tied-whisper.2.",
+      "homage": "Homage to CLODYSSEY \u2014 portrait sp-04-end.chrome-ear.3.",
       "targets": {
-        "all": "sp-04-end.chrome-ear.3",
-        "canon": "sp-09-review.her-tied-whisper.2"
+        "all": "sp-04-end.chrome-ear.3"
       },
       "paths": {
-        "all": "/archives/clodyssey/all",
-        "canon": "/archives/clodyssey/canon"
+        "all": "/archives/clodyssey/all"
       },
       "counts": {
         "allUnique": 1378,
-        "allTiles": 1380,
-        "canonUnique": 226,
-        "canonTiles": 234
+        "allTiles": 1380
       },
-      "note": "Each photograph once. All and Film Canon may use different homage stills from this film."
+      "note": "Every photograph once \u00b7 none reused."
     },
     {
       "id": "escape-velocity",
@@ -161,22 +137,18 @@
       "label": "ESCAPE VELOCITY",
       "released": "September 2026",
       "createdAt": "2026-10-21",
-      "homage": "A front-facing portrait from ESCAPE VELOCITY \u2014 the first film.",
+      "homage": "Homage to ESCAPE VELOCITY \u2014 portrait ev-14-dist.dist-cu.3.",
       "targets": {
-        "all": "ev-14-dist.dist-cu.3",
-        "canon": "ev-14-dist.dist-cu.3"
+        "all": "ev-14-dist.dist-cu.3"
       },
       "paths": {
-        "all": "/archives/escape-velocity/all",
-        "canon": "/archives/escape-velocity/canon"
+        "all": "/archives/escape-velocity/all"
       },
       "counts": {
         "allUnique": 1378,
-        "allTiles": 1380,
-        "canonUnique": 226,
-        "canonTiles": 234
+        "allTiles": 1380
       },
-      "note": "Edition 1. House rule: every photograph once (none reused). Near-square grids; empty cells when the count cannot tile cleanly. Studio lets visitors prompt shareable 1\u00d7 mosaics."
+      "note": "Every photograph once \u00b7 none reused."
     }
   ]
 }

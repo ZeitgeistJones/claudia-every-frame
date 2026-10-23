@@ -6,7 +6,6 @@ import { Check, Copy, Download, Loader2, Sparkles, ArrowLeft } from "lucide-reac
 
 import { Button } from "@/components/ui/button";
 import { drawCover, loadImage, sampleCellLabs } from "@/lib/color";
-import type { ModeKey } from "@/lib/mosaic";
 import {
   STUDIO_RULES_LABEL,
   assignOnce,
@@ -29,7 +28,6 @@ export function StudioApp() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [catalog, setCatalog] = useState<StudioCatalog | null>(null);
   const [prompt, setPrompt] = useState("");
-  const [mode, setMode] = useState<ModeKey>("all");
   const [seed, setSeed] = useState(7);
   const [phase, setPhase] = useState<Phase>("idle");
   const [status, setStatus] = useState("Prompt a Claudia homage — we keep it related and appropriate.");
@@ -43,7 +41,6 @@ export function StudioApp() {
   useEffect(() => {
     const shared = decodeShare(window.location.search);
     if (shared.prompt) setPrompt(shared.prompt);
-    if (shared.mode) setMode(shared.mode);
     if (shared.seed != null) setSeed(shared.seed);
   }, []);
 
@@ -69,10 +66,7 @@ export function StudioApp() {
     };
   }, []);
 
-  const sources = useMemo(() => {
-    if (!catalog) return [] as CatalogItem[];
-    return mode === "canon" ? catalog.items.filter((i) => i.plate) : catalog.items;
-  }, [catalog, mode]);
+  const sources = useMemo(() => catalog?.items ?? [], [catalog]);
 
   const build = useCallback(async () => {
     if (!catalog || !sources.length) return;
@@ -105,9 +99,9 @@ export function StudioApp() {
     let tgt: CatalogItem;
     if (shared.target && shared.prompt === cleaned) {
       const hit = sources.find((i) => i.id === shared.target);
-      tgt = hit ?? pickTarget(sources, mode, cleaned, tags, seed);
+      tgt = hit ?? pickTarget(sources, cleaned, tags, seed);
     } else {
-      tgt = pickTarget(sources, mode, cleaned, tags, seed);
+      tgt = pickTarget(sources, cleaned, tags, seed);
     }
     setTarget(tgt);
 
@@ -171,7 +165,7 @@ export function StudioApp() {
       const url = canvas.toDataURL("image/jpeg", 0.88);
       setJpegUrl(url);
 
-      const sharePath = encodeShare({ prompt: cleaned, target: tgt.id, mode, seed });
+      const sharePath = encodeShare({ prompt: cleaned, target: tgt.id, seed });
       window.history.replaceState(null, "", sharePath);
 
       setPhase("ready");
@@ -183,7 +177,7 @@ export function StudioApp() {
       setPhase("error");
       setStatus(err instanceof Error ? err.message : "Build failed");
     }
-  }, [catalog, sources, prompt, mode, seed]);
+  }, [catalog, sources, prompt, seed]);
 
   // Auto-build when landing on a complete share link
   useEffect(() => {
@@ -199,7 +193,7 @@ export function StudioApp() {
   const copyLink = async () => {
     const cleaned = verdict?.cleanedPrompt || prompt.trim();
     if (!target || !cleaned) return;
-    const path = encodeShare({ prompt: cleaned, target: target.id, mode, seed });
+    const path = encodeShare({ prompt: cleaned, target: target.id, seed });
     const url = `${window.location.origin}${path}`;
     try {
       await navigator.clipboard.writeText(url);
@@ -261,38 +255,15 @@ export function StudioApp() {
               />
             </label>
 
-            <div className="flex flex-wrap items-center gap-3">
-              <div role="radiogroup" aria-label="Source set" className="flex rounded-full border border-white/12 bg-black/45 p-0.5 text-[11px]">
-                {(
-                  [
-                    ["all", "All"],
-                    ["canon", "Film Canon"],
-                  ] as const
-                ).map(([k, label]) => (
-                  <button
-                    key={k}
-                    type="button"
-                    role="radio"
-                    aria-checked={mode === k}
-                    onClick={() => setMode(k)}
-                    className={`rounded-full px-3 py-1.5 tracking-wide transition-colors ${
-                      mode === k ? "bg-[#D97757] font-semibold text-[#1b1210]" : "text-white/70 hover:text-white"
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-              <label className="flex items-center gap-2 text-[11px] text-white/45">
-                Seed
-                <input
-                  type="number"
-                  value={seed}
-                  onChange={(e) => setSeed(Number(e.target.value) || 0)}
-                  className="w-20 rounded-lg border border-white/12 bg-black/45 px-2 py-1.5 font-mono text-white outline-none"
-                />
-              </label>
-            </div>
+            <label className="flex items-center gap-2 text-[11px] text-white/45">
+              Seed
+              <input
+                type="number"
+                value={seed}
+                onChange={(e) => setSeed(Number(e.target.value) || 0)}
+                className="w-20 rounded-lg border border-white/12 bg-black/45 px-2 py-1.5 font-mono text-white outline-none"
+              />
+            </label>
 
             <div className="flex flex-wrap gap-2">
               <Button
@@ -337,7 +308,7 @@ export function StudioApp() {
 
             <p className="text-[11px] tracking-wide text-white/30">
               {STUDIO_RULES_LABEL}
-              {catalog ? ` · ${sources.length.toLocaleString()} ${mode === "canon" ? "Film Canon" : "eligible"} photographs` : ""}
+              {catalog ? ` · ${sources.length.toLocaleString()} photographs` : ""}
               {" · "}Official deep-zoom editions stay on the{" "}
               <Link href="/" className="underline decoration-white/20 hover:text-white/50">
                 home page

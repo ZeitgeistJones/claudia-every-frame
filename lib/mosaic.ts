@@ -5,19 +5,6 @@
 
 export const GALLERY = "https://claudia.gallery";
 
-export type ModeKey = "all" | "canon";
-
-export interface ModeConfig {
-  key: ModeKey;
-  label: string;
-  short: string;
-}
-
-export const MODES: Record<ModeKey, ModeConfig> = {
-  all: { key: "all", label: "Every Claudia image", short: "All" },
-  canon: { key: "canon", label: "Film Canon (in the finished films)", short: "Film Canon" },
-};
-
 export interface MosaicSource {
   id: string;
   film: string | null;
@@ -73,11 +60,6 @@ export interface MosaicReport {
 /** House rules shown on the site — hard caps the mosaic builder also enforces. */
 export const HOUSE_RULES_LABEL = "every photograph once · none reused";
 
-export interface EditionTargets {
-  all: string;
-  canon: string;
-}
-
 export interface Edition {
   id: string;
   filmId: string;
@@ -86,8 +68,9 @@ export interface Edition {
   released?: string | null;
   createdAt?: string;
   homage?: string;
-  targets: EditionTargets;
-  paths: { all: string; canon: string };
+  /** Homage still id (All / her===true). Legacy `targets.canon` may still exist in JSON. */
+  targets: { all: string; canon?: string };
+  paths: { all: string; canon?: string };
   counts?: {
     allUnique?: number;
     allTiles?: number;
@@ -103,16 +86,12 @@ export interface EditionsFile {
   editions: Edition[];
 }
 
-/** Live folders for the current edition (always rebuilt in place). */
-export const LIVE_PATHS: Record<ModeKey, string> = {
-  all: "/mosaic",
-  canon: "/mosaic-canon",
-};
+/** Live folder for the current edition (always rebuilt in place). */
+export const LIVE_PATH = "/mosaic";
 
-export function editionBase(edition: Edition, mode: ModeKey, currentId: string | null): string {
-  // Current edition reads from the live folders so deploys stay simple.
-  if (edition.id === currentId) return LIVE_PATHS[mode];
-  return mode === "all" ? edition.paths.all : edition.paths.canon;
+export function editionBase(edition: Edition, currentId: string | null): string {
+  if (edition.id === currentId) return LIVE_PATH;
+  return edition.paths.all || LIVE_PATH;
 }
 
 function isObject(v: unknown): v is Record<string, unknown> {

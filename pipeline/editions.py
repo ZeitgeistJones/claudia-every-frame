@@ -148,15 +148,13 @@ def pick_target_pair(items: list[dict], film_id: str) -> tuple[dict, dict]:
 
 
 def archive_current(edition_id: str) -> Path:
-    """Copy the live mosaic folders into public/archives/<edition_id>/."""
+    """Copy the live mosaic folder into public/archives/<edition_id>/all/."""
     dest = ARCHIVES / edition_id
     if dest.exists():
         shutil.rmtree(dest)
     dest.mkdir(parents=True)
     if CURRENT_ALL.exists():
         shutil.copytree(CURRENT_ALL, dest / "all")
-    if CURRENT_CANON.exists():
-        shutil.copytree(CURRENT_CANON, dest / "canon")
     return dest
 
 
@@ -177,13 +175,13 @@ def upsert_edition(
     *,
     film: dict,
     target_all: str,
-    target_canon: str,
+    target_canon: str | None = None,  # legacy kwarg; ignored (Film Canon UI retired)
     make_current: bool = True,
 ) -> dict:
+    _ = target_canon
     data = load_editions()
     edition_id = film["id"]
     all_counts = read_counts(CURRENT_ALL)
-    canon_counts = read_counts(CURRENT_CANON)
     entry = {
         "id": edition_id,
         "filmId": film["id"],
@@ -193,19 +191,17 @@ def upsert_edition(
         "createdAt": date.today().isoformat(),
         "homage": (
             f"Homage to {film.get('title') or film['id']} — "
-            f"All target {target_all}; Film Canon target {target_canon}."
+            f"portrait {target_all}."
         ),
-        "targets": {"all": target_all, "canon": target_canon},
+        "targets": {"all": target_all},
         "paths": {
             "all": f"/archives/{edition_id}/all",
-            "canon": f"/archives/{edition_id}/canon",
         },
         "counts": {
             "allUnique": all_counts.get("unique"),
             "allTiles": all_counts.get("tiles"),
-            "canonUnique": canon_counts.get("unique"),
-            "canonTiles": canon_counts.get("tiles"),
         },
+        "note": "Every photograph once · none reused.",
     }
     editions = [e for e in data.get("editions", []) if e.get("id") != edition_id]
     editions.insert(0, entry)

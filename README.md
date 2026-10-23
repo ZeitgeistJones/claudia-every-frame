@@ -13,7 +13,6 @@ Claudia by anabology.
 | `pipeline/fetch.py` | Reads the official API (`/api/images.json`), selects `her === true` images (or `her && plate` with `--canon`), and caches files in `cache/img/`. Already-downloaded files are reused. |
 | `pipeline/build_mosaic.py` | Builds the mosaic: Lab structure matching, hard house rules (every photo ≥1×, max 4× each), global assignment, repeat spreading, rendering, JPEG exports, and a deep-zoom (DZI) pyramid. |
 | `public/mosaic/` | Default mosaic (all `her === true` photos): `claudia-mosaic-full.jpg`, `claudia-mosaic-x.jpg`, `mosaic.json` (cell → photo map), `report.json`, `dzi/`. |
-| `public/mosaic-canon/` | Same outputs for Film Canon mode (`her && plate`). |
 | `app/`, `components/` | Next.js viewer (OpenSeadragon deep zoom, click a tile to see the original). |
 
 ## House rules
@@ -24,7 +23,7 @@ Claudia by anabology.
 
 ## Current build
 
-* Official All / Film Canon: each photograph once · deep-zoom DZI
+* Official editions: each photograph once · deep-zoom DZI
 * Studio: prompt → filter (must be Claudia-related & appropriate) → shareable 1× mosaic
 
 ## Run the viewer locally
@@ -39,7 +38,6 @@ npm run dev        # http://localhost:4317
 ```bash
 python3 -m venv .venv && .venv/bin/pip install -r pipeline/requirements.txt
 .venv/bin/python pipeline/build_mosaic.py --max-uses 1                    # all her===true → public/mosaic
-.venv/bin/python pipeline/build_mosaic.py --canon --max-uses 1 --out public/mosaic-canon
 .venv/bin/python pipeline/build_catalog.py                                # Studio catalog for /studio
 ```
 
@@ -53,11 +51,9 @@ with a random subset).
 
 Each new Claudia film can get its own **homage edition**:
 
-- **All** mosaic → portrait picked from that film's `her===true` stills
-- **Film Canon** mosaic → portrait picked from that film's `her && plate` stills
-- Those two targets can be **different images**
-- Previous editions are archived under `public/archives/<film-id>/`
-- The live site always serves `public/mosaic` + `public/mosaic-canon`, with an Edition menu to revisit archives
+- Portrait picked from that film's `her===true` stills
+- Previous editions are archived under `public/archives/<film-id>/all/`
+- The live site serves `public/mosaic`, with an Edition menu to revisit archives
 
 When a new film lands on claudia.gallery:
 
