@@ -86,7 +86,7 @@ export async function GET(req: Request) {
       rebuild: nextFilm
         ? {
             command: `.venv/bin/python pipeline/update_mosaic.py --film ${nextFilm.id}`,
-            note: "Run locally or in CI — too large for a Vercel Hobby function. All and Film Canon will pick separate homage stills from the new film when possible.",
+            note: "Run locally or in CI — too large for a Vercel Hobby function. Rebuilds the All homage mosaic for the new film.",
           }
         : null,
       checkedAt: new Date().toISOString(),
