@@ -145,7 +145,7 @@ def cost_matrix(tfeat: np.ndarray, sfeat: np.ndarray, chan_w: tuple[float, float
 # Hard house rules for every mosaic going forward:
 #   1. Every eligible photograph is used at least once.
 #   2. No photograph is used more than MAX_USES times.
-# Official + Studio default is 1× — each still appears once (the "cooler" first cut).
+# Official default is 1× — each still appears once (the "cooler" first cut).
 MAX_USES = 1
 
 

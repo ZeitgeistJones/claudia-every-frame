@@ -390,13 +390,6 @@ export function MosaicExplorer() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <a
-              href="/studio"
-              className="inline-flex h-8 items-center gap-1.5 rounded-full border border-[#D97757]/45 bg-[#D97757]/15 px-3 text-[11px] font-medium tracking-wide text-[#f0c4b0] backdrop-blur transition-colors hover:border-[#D97757]/70 hover:bg-[#D97757]/25"
-              title="Prompt your own Claudia mosaic and share it"
-            >
-              Studio
-            </a>
             {editions && editions.editions.length > 0 && (
               <label className="flex items-center gap-1.5 rounded-full border border-white/12 bg-black/50 px-2.5 py-1 text-[11px] tracking-wide text-white/70 backdrop-blur">
                 <span className="hidden text-white/40 sm:inline">Edition</span>

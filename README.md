@@ -11,7 +11,7 @@ Claudia by anabology.
 | Path | What it is |
 | --- | --- |
 | `pipeline/fetch.py` | Reads the official API (`/api/images.json`), selects `her === true` images (or `her && plate` with `--canon`), and caches files in `cache/img/`. Already-downloaded files are reused. |
-| `pipeline/build_mosaic.py` | Builds the mosaic: Lab structure matching, hard house rules (every photo ≥1×, max 4× each), global assignment, repeat spreading, rendering, JPEG exports, and a deep-zoom (DZI) pyramid. |
+| `pipeline/build_mosaic.py` | Builds the mosaic: Lab structure matching, hard house rules (every photo once), global assignment, rendering, JPEG exports, and a deep-zoom (DZI) pyramid. |
 | `public/mosaic/` | Default mosaic (all `her === true` photos): `claudia-mosaic-full.jpg`, `claudia-mosaic-x.jpg`, `mosaic.json` (cell → photo map), `report.json`, `dzi/`. |
 | `app/`, `components/` | Next.js viewer (OpenSeadragon deep zoom, click a tile to see the original). |
 
@@ -19,12 +19,10 @@ Claudia by anabology.
 
 * Every eligible photograph appears **exactly once** (no reuse)
 * Near-square grids; a few empty cells when the count can’t tile cleanly (same idea as the first cut)
-* **Official editions** = curated deep-zoom on `/`; **Studio** at `/studio` = prompt a Claudia-related homage, filter for appropriate, build a shareable 1× preview in the browser
 
 ## Current build
 
-* Official editions: each photograph once · deep-zoom DZI
-* Studio: prompt → filter (must be Claudia-related & appropriate) → shareable 1× mosaic
+* Official editions: each photograph once · deep-zoom DZI · Edition menu per film
 
 ## Run the viewer locally
 
@@ -38,7 +36,6 @@ npm run dev        # http://localhost:4317
 ```bash
 python3 -m venv .venv && .venv/bin/pip install -r pipeline/requirements.txt
 .venv/bin/python pipeline/build_mosaic.py --max-uses 1                    # all her===true → public/mosaic
-.venv/bin/python pipeline/build_catalog.py                                # Studio catalog for /studio
 ```
 
 The builder refreshes the gallery index, downloads only new images, and

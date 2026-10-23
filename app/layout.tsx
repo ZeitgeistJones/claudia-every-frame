@@ -14,7 +14,7 @@ const siteUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL
 
 const title = "Claudia — Every Frame";
 const description =
-  "Official Claudia photomosaics from every real claudia.gallery photograph — each still used once. Prompt your own in Studio and share it.";
+  "Official Claudia photomosaics from every real claudia.gallery photograph — each still used once. Zoom in to find each frame.";
 
 // Dedicated X/OG card (1200×675) — see public/og.jpg
 const ogImage = {
