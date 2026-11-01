@@ -23,6 +23,7 @@ Claudia by anabology.
 ## Current build
 
 * Official editions: each photograph once · deep-zoom DZI · Edition menu per film
+* New-film portrait: creative / tasteful / fitting for that video — not required to copy a frame from it
 
 ## Run the viewer locally
 

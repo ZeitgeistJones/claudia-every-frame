@@ -5,7 +5,8 @@ What it does
   1. Reads https://claudia.gallery/api/films.json + images.json
   2. Finds the newest film that does not yet have an edition (or uses --film)
   3. Archives the current live mosaics into public/archives/<old-id>/
-  4. Picks a homage target from the new film (best her===true still, usually a CU)
+  4. Picks a creative/tasteful portrait that *fits* the film (not necessarily
+     a frame from it — same-film stills are a bonus when they feel right)
   5. Rebuilds public/mosaic (All photographs, each once), regenerates og.jpg
   6. Updates public/editions.json
 
@@ -128,7 +129,7 @@ def main() -> None:
         print(json.dumps(status, indent=2))
         return
 
-    log(f"homage film: {film['id']} ({film.get('title')})")
+    log(f"edition film: {film['id']} ({film.get('title')})")
     items = fetch.fetch_index(refresh=True)
 
     if args.target_all:
@@ -136,10 +137,24 @@ def main() -> None:
         if not target_all_item:
             raise SystemExit(f"--target-all {args.target_all} not in gallery")
     else:
-        target_all_item = editions.pick_target(items, film["id"], canon=False)
+        target_all_item = editions.pick_target(
+            items, film["id"], canon=False, film=film
+        )
 
-    log(f"homage target: {target_all_item['id']}  framing={target_all_item.get('framing')} plate={target_all_item.get('plate')}")
+    log(
+        f"portrait: {target_all_item['id']}  "
+        f"film={target_all_item.get('film')}  "
+        f"look={target_all_item.get('look')}  "
+        f"framing={target_all_item.get('framing')}  "
+        f"from_film={target_all_item.get('_fit_from_film')}  "
+        f"shortlist={target_all_item.get('_fit_shortlist')}"
+    )
     status["targets"] = {"all": target_all_item["id"]}
+    status["targetMeta"] = {
+        "fromFilm": bool(target_all_item.get("_fit_from_film")),
+        "look": target_all_item.get("look"),
+        "framing": target_all_item.get("framing"),
+    }
 
     if args.dry_run:
         print(json.dumps(status, indent=2))
@@ -166,6 +181,11 @@ def main() -> None:
         film=film,
         target_all=target_all_item["id"],
         make_current=True,
+        target_from_film=bool(
+            target_all_item.get("_fit_from_film")
+            if "_fit_from_film" in target_all_item
+            else target_all_item.get("film") == film["id"]
+        ),
     )
     log(f"archiving new edition {entry['id']!r}")
     editions.archive_current(entry["id"])

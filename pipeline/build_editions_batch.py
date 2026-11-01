@@ -146,8 +146,11 @@ def main() -> None:
     for film in todo:
         fid = film["id"]
         log(f"=== {fid} ({film.get('title')}) ===")
-        all_t = editions.pick_target(items, fid, canon=False)
-        log(f"homage target: {all_t['id']}  framing={all_t.get('framing')} plate={all_t.get('plate')}")
+        all_t = editions.pick_target(items, fid, canon=False, film=film)
+        log(
+            f"portrait: {all_t['id']}  film={all_t.get('film')}  "
+            f"look={all_t.get('look')}  from_film={all_t.get('_fit_from_film')}"
+        )
         if args.dry_run:
             continue
 

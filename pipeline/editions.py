@@ -1,17 +1,19 @@
 """
 Edition helpers for Claudia — Every Frame.
 
-An "edition" is one homage mosaic generation, usually tied to a film.
-Current live outputs live in public/mosaic (All) and public/mosaic-canon
-(Film Canon). Finished editions are copied into public/archives/<id>/.
+An "edition" is one mosaic generation tied to a film drop. Live output lives in
+public/mosaic/; finished editions are copied into public/archives/<id>/.
 
-Future editions may use DIFFERENT target portraits for All vs Film Canon —
-e.g. All uses a striking CU from the new film's archive, Film Canon uses a
-plate that actually appears in the finished cut.
+Target portrait rule
+  Not "the best CU." Something creative, tasteful, and fitting for the video.
+  Recreating a still from the new film is fine when that still feels right —
+  it is not required. Mood / look / world fit matters more than sharpness of face.
 """
 from __future__ import annotations
 
+import hashlib
 import json
+import re
 import shutil
 from datetime import date
 from pathlib import Path
@@ -23,19 +25,29 @@ CURRENT_ALL = PUBLIC / "mosaic"
 CURRENT_CANON = PUBLIC / "mosaic-canon"
 ARCHIVES = PUBLIC / "archives"
 
-FRAMING_SCORE = {
-    "ECU": 100,
-    "CU": 90,
-    "MCU": 55,
-    "MS": 25,
-    "full": 10,
-    "sheet": -40,
+# Soft framing preference for a *tasteful* mosaic structure — not a CU arms race.
+# Extreme close-ups are fine; mid shots and cinematic wides that still read as
+# Claudia can win when they fit the film better.
+FRAMING_TASTE = {
+    "ECU": 18,
+    "CU": 22,
+    "MCU": 24,
+    "MS": 16,
+    "MWS": 10,
+    "WS": 6,
+    "full": 8,
+    "EWS": 2,
+    "aerial": -15,
     "macro": -20,
-    "aerial": -30,
-    "EWS": -10,
-    "WS": 0,
-    "MWS": 5,
-    "": 15,
+    "sheet": -50,
+    "": 12,  # untagged cinematic stills are common and often great
+}
+
+_STOP = {
+    "a", "an", "the", "and", "or", "of", "to", "in", "on", "for", "as", "is",
+    "are", "was", "were", "be", "by", "with", "from", "at", "it", "she", "her",
+    "his", "he", "they", "them", "that", "this", "into", "out", "up", "not",
+    "but", "until", "than", "then", "now", "one", "two", "also", "still",
 }
 
 
@@ -58,92 +70,231 @@ def known_film_ids(data: dict | None = None) -> set[str]:
     return ids
 
 
-def score_target(item: dict, *, prefer_plate: bool) -> float:
-    """Higher = better homage portrait for a film."""
+def _tokens(text: str) -> set[str]:
+    words = re.findall(r"[a-z0-9']+", (text or "").lower())
+    return {w for w in words if len(w) >= 3 and w not in _STOP}
+
+
+def film_vibe(film: dict, items: list[dict]) -> dict:
+    """Mood signature: title/logline/world keywords + looks used in the film."""
+    film_id = film.get("id") or ""
+    blob = " ".join(
+        str(film.get(k) or "")
+        for k in ("title", "subtitle", "logline", "world", "gallery_note")
+    )
+    keywords = _tokens(blob)
+    looks: set[str] = set()
+    look_names: set[str] = set()
+    for it in items:
+        if it.get("film") != film_id or it.get("her") is not True:
+            continue
+        if it.get("look"):
+            looks.add(str(it["look"]))
+        if it.get("look_name"):
+            look_names.add(str(it["look_name"]).lower())
+            keywords |= _tokens(str(it["look_name"]))
+        keywords |= _tokens(str(it.get("prompt") or ""))
+    if len(keywords) > 80:
+        keywords = set(sorted(keywords, key=lambda w: (-len(w), w))[:80])
+    return {
+        "film_id": film_id,
+        "keywords": keywords,
+        "looks": looks,
+        "look_names": look_names,
+    }
+
+
+def recent_target_ids(data: dict | None = None, *, limit: int = 8) -> set[str]:
+    """Targets already used on recent editions — avoid repeating the same face."""
+    data = data or load_editions()
+    out: set[str] = set()
+    for e in (data.get("editions") or [])[:limit]:
+        t = (e.get("targets") or {}).get("all")
+        if t:
+            out.add(t)
+    return out
+
+
+def score_taste(item: dict) -> float:
+    """
+    Is this a tasteful mosaic subject — readable Claudia, cinematic, not junk.
+    Intentionally flat across CU/MCU/MS so 'best face' does not always win.
+    """
     if item.get("her") is not True:
         return -1e9
     framing = item.get("framing") or ""
-    score = float(FRAMING_SCORE.get(framing, 0))
-    if item.get("plate") is True:
-        score += 40 if prefer_plate else 15
-    # Prefer upright / face-forward looking prompts and pages
+    score = float(FRAMING_TASTE.get(framing, 0))
     prompt = (item.get("prompt") or "").lower()
+    alt = (item.get("alt") or "").lower()
+    blob = prompt + " " + alt
+
+    # Creative / cinematic signals
     for word, bonus in (
-        ("close-up portrait", 35),
-        ("close-up", 20),
-        ("portrait", 18),
-        ("eye level", 12),
-        ("front", 8),
-        ("head and shoulders", 10),
-        ("looking at", 6),
-        ("turnaround", -50),
+        ("cinematic", 14),
+        ("still", 4),
+        ("portrait", 8),
+        ("close-up", 6),
+        ("eye level", 6),
+        ("golden hour", 8),
+        ("neon", 6),
+        ("moody", 6),
+        ("soft light", 5),
+        ("turnaround", -55),
+        ("character sheet", -55),
         ("sheet", -40),
-        ("avatar", -30),
-        ("anime", -25),
+        ("avatar", -35),
+        ("grid", -25),
+        ("reference", -15),
+        ("anime", -20),
     ):
-        if word in prompt:
+        if word in blob:
             score += bonus
-    # Prefer near-square or portrait aspect for faces; landscape is fine for CU too
-    w, h = item.get("w") or 0, item.get("h") or 0
-    if w and h and h >= w:
+
+    if item.get("plate") is True:
+        score += 12  # actually in a cut — often the tasteful choice
+    if item.get("cut") is True:
         score += 8
-    # Prefer later / higher-n variants slightly less; keep deterministic
-    score -= 0.01 * int(item.get("n") or 0)
+    if item.get("edited") is True:
+        score += 4
+    if item.get("profile") is True:
+        score += 3
+
+    w, h = item.get("w") or 0, item.get("h") or 0
+    if w and h:
+        # Prefer images large enough to structure a mosaic; mild portrait bonus
+        if min(w, h) >= 1024:
+            score += 4
+        if h >= w:
+            score += 3
+
+    # Slight jitter-breaker only (keep deterministic)
+    score -= 0.001 * int(item.get("n") or 0)
     return score
 
 
-def pick_target(items: list[dict], film_id: str, *, canon: bool, allow_her_fallback: bool = True) -> dict:
-    """
-    Pick a Claudia still from `film_id` to be the homage portrait.
-
-    - All mode: any her===true image from that film (prefers CU/ECU, plates ok).
-    - Film Canon: her===true && plate===true from that film; if the film has no
-      plates yet (brand-new drop), fall back to the best her===true still.
-    """
-    pool = [it for it in items if it.get("film") == film_id and it.get("her") is True]
-    used_fallback = False
-    if canon:
-        plates = [it for it in pool if it.get("plate") is True]
-        if plates:
-            pool = plates
-        elif allow_her_fallback and pool:
-            used_fallback = True
-        else:
-            raise ValueError(f"no usable plate images for film {film_id!r}")
-    if not pool:
-        raise ValueError(
-            f"no usable {'plate' if canon else 'her'} images for film {film_id!r}"
+def score_fit(item: dict, vibe: dict) -> float:
+    """How well this still belongs with the film's world / looks / language."""
+    score = 0.0
+    film_id = vibe.get("film_id") or ""
+    if item.get("film") == film_id:
+        score += 22.0  # nice when it is from the film — not mandatory
+    look = item.get("look") or ""
+    if look and look in (vibe.get("looks") or set()):
+        score += 48.0
+    look_name = (item.get("look_name") or "").lower()
+    if look_name and look_name in (vibe.get("look_names") or set()):
+        score += 18.0
+    hay = _tokens(
+        " ".join(
+            str(item.get(k) or "")
+            for k in ("prompt", "alt", "look_name", "batch_note", "film_title")
         )
-    ranked = sorted(pool, key=lambda it: score_target(it, prefer_plate=canon and not used_fallback), reverse=True)
-    pick = ranked[0]
-    if used_fallback:
-        pick = dict(pick)
-        pick["_canon_her_fallback"] = True
+    )
+    overlap = hay & (vibe.get("keywords") or set())
+    score += min(36.0, 2.5 * len(overlap))
+    return score
+
+
+def score_fitting(item: dict, vibe: dict, *, used: set[str] | None = None) -> float:
+    """Fit (heavy) + taste (moderate). Not a 'best CU' maximizer."""
+    if item.get("her") is not True:
+        return -1e9
+    score = score_fit(item, vibe) * 1.35 + score_taste(item)
+    if used and item.get("id") in used:
+        score -= 40.0
+    return score
+
+
+# Back-compat for anything still calling the old name
+def score_target(item: dict, *, prefer_plate: bool) -> float:
+    _ = prefer_plate
+    return score_taste(item)
+
+
+def _stable_pick(candidates: list[dict], *, salt: str) -> dict:
+    """
+    Among a shortlist of equally-good-enough options, pick one creatively but
+    stably (same film → same pick). Avoids always taking ranked[0].
+    """
+    if len(candidates) == 1:
+        return candidates[0]
+    digest = hashlib.sha256(salt.encode("utf-8")).hexdigest()
+    idx = int(digest[:8], 16) % len(candidates)
+    return candidates[idx]
+
+
+def pick_target(
+    items: list[dict],
+    film_id: str,
+    *,
+    canon: bool = False,
+    allow_her_fallback: bool = True,
+    film: dict | None = None,
+    require_same_film: bool = False,
+) -> dict:
+    """
+    Pick a creative, tasteful portrait that fits this film.
+
+    Searches the her===true archive by default. Same-film stills are preferred
+    when they fit, not required. From a shortlist of strong fits, chooses one
+    stably via film id — not whichever has the highest CU score.
+    """
+    _ = allow_her_fallback
+    film_meta = film or {"id": film_id}
+    if not film_meta.get("id"):
+        film_meta = {**film_meta, "id": film_id}
+
+    vibe = film_vibe(film_meta, items)
+    used = recent_target_ids()
+    pool = [it for it in items if it.get("her") is True]
+    if require_same_film or canon:
+        local = [it for it in pool if it.get("film") == film_id]
+        if canon:
+            plates = [it for it in local if it.get("plate") is True]
+            pool = plates or local
+        else:
+            pool = local
+    if not pool:
+        raise ValueError(f"no usable her===true images for film {film_id!r}")
+
+    ranked = sorted(
+        pool,
+        key=lambda it: score_fitting(it, vibe, used=used),
+        reverse=True,
+    )
+    top = ranked[0]
+    top_score = score_fitting(top, vibe, used=used)
+
+    # Shortlist: within a tasteful band of the leader (not just #1)
+    band = 18.0
+    shortlist = [
+        it for it in ranked
+        if score_fitting(it, vibe, used=used) >= top_score - band
+    ][:16]
+
+    # Prefer shortlist members that are from the film OR share a film look,
+    # when any exist inside the band — keeps editions feeling on-world without
+    # forcing a literal frame copy.
+    on_world = [
+        it for it in shortlist
+        if it.get("film") == film_id
+        or (it.get("look") and it.get("look") in (vibe.get("looks") or set()))
+    ]
+    if on_world:
+        shortlist = on_world
+
+    pick = dict(_stable_pick(shortlist, salt=f"fit:{film_id}"))
+    pick["_fit_score"] = score_fitting(pick, vibe, used=used)
+    pick["_fit_from_film"] = pick.get("film") == film_id
+    pick["_fit_look"] = pick.get("look")
+    pick["_fit_shortlist"] = len(shortlist)
     return pick
 
 
 def pick_target_pair(items: list[dict], film_id: str) -> tuple[dict, dict]:
-    """
-    Pick All + Film Canon homage stills for a film.
-
-    Prefers two DIFFERENT images when the film has another strong option for All
-    (within a score margin of the top pick). Film Canon prefers a real plate;
-    if none exist yet, both modes may share (or split) her===true stills.
-    """
-    canon = pick_target(items, film_id, canon=True)
-    all_pool = [it for it in items if it.get("film") == film_id and it.get("her") is True]
-    ranked = sorted(all_pool, key=lambda it: score_target(it, prefer_plate=False), reverse=True)
-    if not ranked:
-        raise ValueError(f"no her===true images for film {film_id!r}")
-    best = ranked[0]
-    best_score = score_target(best, prefer_plate=False)
-    all_pick = best
-    for cand in ranked:
-        if cand["id"] == canon["id"]:
-            continue
-        if score_target(cand, prefer_plate=False) >= best_score - 30:
-            all_pick = cand
-            break
+    """Legacy All + Film Canon pair."""
+    canon = pick_target(items, film_id, canon=True, require_same_film=True)
+    all_pick = pick_target(items, film_id, canon=False, require_same_film=False)
     return all_pick, canon
 
 
@@ -175,24 +326,32 @@ def upsert_edition(
     *,
     film: dict,
     target_all: str,
-    target_canon: str | None = None,  # legacy kwarg; ignored (Film Canon UI retired)
+    target_canon: str | None = None,
     make_current: bool = True,
+    target_from_film: bool | None = None,
 ) -> dict:
     _ = target_canon
     data = load_editions()
     edition_id = film["id"]
     all_counts = read_counts(CURRENT_ALL)
+    title = film.get("title") or film["id"]
+    if target_from_film is True:
+        homage = f"Edition for {title} — portrait {target_all} (from the film)."
+    elif target_from_film is False:
+        homage = (
+            f"Edition for {title} — portrait {target_all} "
+            f"(fitting look from the archive)."
+        )
+    else:
+        homage = f"Edition for {title} — portrait {target_all}."
     entry = {
         "id": edition_id,
         "filmId": film["id"],
-        "filmTitle": film.get("title") or film["id"],
-        "label": film.get("title") or film["id"],
+        "filmTitle": title,
+        "label": title,
         "released": film.get("released"),
         "createdAt": date.today().isoformat(),
-        "homage": (
-            f"Homage to {film.get('title') or film['id']} — "
-            f"portrait {target_all}."
-        ),
+        "homage": homage,
         "targets": {"all": target_all},
         "paths": {
             "all": f"/archives/{edition_id}/all",
@@ -201,7 +360,10 @@ def upsert_edition(
             "allUnique": all_counts.get("unique"),
             "allTiles": all_counts.get("tiles"),
         },
-        "note": "Every photograph once · none reused.",
+        "note": (
+            "Every photograph once · none reused. "
+            "Portrait chosen to feel fitting for the film — not necessarily a frame copy."
+        ),
     }
     editions = [e for e in data.get("editions", []) if e.get("id") != edition_id]
     editions.insert(0, entry)
