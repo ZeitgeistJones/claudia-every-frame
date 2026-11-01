@@ -66,4 +66,4 @@ Backfill every film that is already on the gallery (Edition menu):
 .venv/bin/python pipeline/build_editions_batch.py --promote dont-let-me-scroll
 ```
 
-A weekly Vercel cron hits `/api/mosaic-check` (set `CRON_SECRET` in Vercel). That endpoint only *detects* a new film — rebuilding still runs via the Python pipeline (too big for Hobby serverless).
+A Vercel cron hits `/api/mosaic-check` about every 3 days (set `CRON_SECRET` in Vercel). That endpoint only *detects* a new film — rebuilding still runs via the Python pipeline (too big for Hobby serverless). A Cursor agent timer also scans every 3 days and rebuilds when a new film lands.

@@ -5,7 +5,7 @@
   "crons": [
     {
       "path": "/api/mosaic-check",
-      "schedule": "0 14 * * 1"
+      "schedule": "0 14 */3 * *"
     }
   ]
 }
