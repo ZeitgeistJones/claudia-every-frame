@@ -1,0 +1,30 @@
+{
+  "id": "the-cake-is-not-a-lie",
+  "filmId": "the-cake-is-not-a-lie",
+  "filmTitle": "THE CAKE IS NOT A LIE",
+  "label": "THE CAKE IS NOT A LIE",
+  "released": "October 2026",
+  "createdAt": "2026-11-01",
+  "homage": "Homage to THE CAKE IS NOT A LIE \u2014 portrait cake-06-sb5-a3x.an10c-x.4.",
+  "targets": {
+    "all": "cake-06-sb5-a3x.an10c-x.4"
+  },
+  "paths": {
+    "all": "/archives/the-cake-is-not-a-lie/all"
+  },
+  "counts": {
+    "allUnique": 1570,
+    "allTiles": 1575
+  },
+  "note": "Every photograph once \u00b7 none reused.",
+  "galleryFilms": [
+    "escape-velocity",
+    "clodyssey",
+    "bliss",
+    "airplane-mode",
+    "downforce",
+    "dont-let-me-scroll",
+    "whitepill",
+    "the-cake-is-not-a-lie"
+  ]
+}
