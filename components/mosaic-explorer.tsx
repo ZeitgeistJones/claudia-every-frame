@@ -147,7 +147,7 @@ export function MosaicExplorer() {
           navigatorBorderColor: "#2a2428",
           navigatorDisplayRegionColor: "#D97757",
           maxZoomPixelRatio: 1.6,
-          minZoomImageRatio: 0.85,
+          minZoomImageRatio: 0.35,
           visibilityRatio: 0.5,
           constrainDuringPan: true,
           animationTime: 0.9,
