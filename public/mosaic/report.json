@@ -1,9 +1,9 @@
 {
   "mode": "all-her",
-  "eligible_in_gallery": 1570,
-  "sources_loaded": 1570,
-  "unique_sources_placed": 1570,
-  "total_tiles": 1575,
+  "eligible_in_gallery": 1620,
+  "sources_loaded": 1620,
+  "unique_sources_placed": 1620,
+  "total_tiles": 1620,
   "max_uses_per_source": 1,
   "min_uses_per_source": 1,
   "rules": {
@@ -11,13 +11,13 @@
     "max_uses_per_photo": 1,
     "label": "every photograph once \u00b7 none reused"
   },
-  "full_resolution": "11200x8100",
+  "full_resolution": "11520x8100",
   "full_file": "claudia-mosaic-full.jpg",
-  "full_bytes": 15413952,
-  "x_resolution": "2048x1481",
+  "full_bytes": 16933645,
+  "x_resolution": "2048x1440",
   "x_file": "claudia-mosaic-x.jpg",
-  "x_bytes": 1787058,
-  "target": "cake-06-sb5-a3x.an10c-x.4",
+  "x_bytes": 1810213,
+  "target": "ae-01-looks.l1-splash.3",
   "failures": {},
   "params": {
     "cols": 64,
@@ -27,7 +27,7 @@
     "gx": 8,
     "gy": 5,
     "size": "s",
-    "target": "cake-06-sb5-a3x.an10c-x.4",
+    "target": "ae-01-looks.l1-splash.3",
     "target_anchor": 0.4,
     "canon": false,
     "limit": 0,
@@ -46,5 +46,5 @@
     "no_dzi": false,
     "no_refresh": true
   },
-  "seconds": 41.9
+  "seconds": 51.5
 }

@@ -1,6 +1,7 @@
 {
-  "current": "the-cake-is-not-a-lie",
+  "current": "aero",
   "knownFilms": [
+    "aero",
     "airplane-mode",
     "bliss",
     "clodyssey",
@@ -11,6 +12,26 @@
     "whitepill"
   ],
   "editions": [
+    {
+      "id": "aero",
+      "filmId": "aero",
+      "filmTitle": "AERO",
+      "label": "AERO",
+      "released": "November 2026",
+      "createdAt": "2026-11-06",
+      "homage": "Edition for AERO \u2014 portrait ae-01-looks.l1-splash.3 (from the film).",
+      "targets": {
+        "all": "ae-01-looks.l1-splash.3"
+      },
+      "paths": {
+        "all": "/archives/aero/all"
+      },
+      "counts": {
+        "allUnique": 1620,
+        "allTiles": 1620
+      },
+      "note": "Every photograph once \u00b7 none reused. Portrait chosen to feel fitting for the film \u2014 not necessarily a frame copy."
+    },
     {
       "id": "the-cake-is-not-a-lie",
       "filmId": "the-cake-is-not-a-lie",
