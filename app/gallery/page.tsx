@@ -72,8 +72,14 @@ const voices: Record<string, Voice> = {
   "dont-let-me-scroll": {
     fontClass: scrollFace.className,
     label: "don't let me scroll",
-    name: "text-[10px] tracking-tight text-[#c5d2bc] sm:text-[12px]",
-    ...tone("#6d7a66", "#c5d2bc", "rgba(197,210,188,0.45)"),
+    name: "text-[10px] tracking-tight sm:text-[12px]",
+    words: [
+      { text: "don't", color: "#ff4f9a" },
+      { text: "let", color: "#ffe14a" },
+      { text: "me", color: "#f7f5f2" },
+      { text: "scroll", color: "#3dce7a" },
+    ],
+    ...tone("#8a4060", "#ff4f9a", "rgba(255,79,154,0.4)"),
   },
   downforce: {
     fontClass: downforceFace.className,
