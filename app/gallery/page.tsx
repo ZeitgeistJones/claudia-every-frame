@@ -37,6 +37,7 @@ type Voice = {
   glow: string;
   soft: string;
   flaps?: string[];
+  words?: { text: string; color: string }[];
 };
 
 function tone(edge: string, glow: string, soft: string): Pick<Voice, "edge" | "glow" | "soft"> {
@@ -83,8 +84,12 @@ const voices: Record<string, Voice> = {
   "airplane-mode": {
     fontClass: airplaneFace.className,
     label: "Airplane mode",
-    name: "text-[12px] font-light tracking-[0.08em] text-[#b7cfe2] sm:text-[15px]",
-    ...tone("#60788c", "#b7cfe2", "rgba(183,207,226,0.5)"),
+    name: "text-[12px] font-light tracking-[0.08em] sm:text-[15px]",
+    words: [
+      { text: "Airplane", color: "#f7f5f2" },
+      { text: "mode", color: "#e25822" },
+    ],
+    ...tone("#a85a32", "#e25822", "rgba(226,88,34,0.45)"),
   },
   bliss: {
     fontClass: blissFace.className,
@@ -291,6 +296,15 @@ export default function GalleryPage() {
                       </span>
                     ))}
                   </span>
+                ) : voice.words ? (
+                  <p className={`${voice.fontClass} mt-2 max-w-full shrink-0 text-center leading-none whitespace-nowrap ${voice.name}`}>
+                    {voice.words.map((word, wordIndex) => (
+                      <span key={word.text} style={{ color: word.color }}>
+                        {wordIndex > 0 ? " " : ""}
+                        {word.text}
+                      </span>
+                    ))}
+                  </p>
                 ) : (
                   <p
                     style={{ color: voice.glow }}
