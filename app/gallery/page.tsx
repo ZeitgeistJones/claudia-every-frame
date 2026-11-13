@@ -1,19 +1,118 @@
 // The hang. Every edition is on the wall at once — nothing scrolls.
-// Copper edges, the same mark as the mosaic. The tint is said once.
+// Each song's name is set in that film's voice. The tint is said once.
 
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Fraunces } from "next/font/google";
+import {
+  Barlow_Condensed,
+  Cinzel,
+  Fraunces,
+  Fredoka,
+  IBM_Plex_Mono,
+  Italiana,
+  Josefin_Sans,
+  Lora,
+  Oswald,
+  Outfit,
+} from "next/font/google";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import editionsFile from "@/public/editions.json";
 import { editionBase, tintPercents, type Edition, type MosaicReport } from "@/lib/mosaic";
 
-const display = Fraunces({
-  subsets: ["latin"],
-  weight: ["500", "600"],
-  style: ["normal", "italic"],
-});
+const display = Fraunces({ subsets: ["latin"], weight: ["500", "600"], style: ["normal", "italic"] });
+const aeroFace = Josefin_Sans({ subsets: ["latin"], weight: ["300"] });
+const cakeFace = Fredoka({ subsets: ["latin"], weight: ["500"] });
+const whitepillFace = Italiana({ subsets: ["latin"], weight: "400" });
+const scrollFace = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400"] });
+const downforceFace = Oswald({ subsets: ["latin"], weight: ["500"] });
+const airplaneFace = Outfit({ subsets: ["latin"], weight: ["300"] });
+const blissFace = Lora({ subsets: ["latin"], weight: ["500"], style: ["italic"] });
+const clodysseyFace = Cinzel({ subsets: ["latin"], weight: ["500"] });
+const escapeFace = Barlow_Condensed({ subsets: ["latin"], weight: ["500"], style: ["italic"] });
+
+type Voice = {
+  fontClass: string;
+  label: string;
+  name: string;
+  edge: string;
+  glow: string;
+  soft: string;
+};
+
+function tone(edge: string, glow: string, soft: string): Pick<Voice, "edge" | "glow" | "soft"> {
+  return { edge, glow, soft };
+}
+
+const voices: Record<string, Voice> = {
+  fable: {
+    fontClass: display.className,
+    label: "Fable",
+    name: "text-[17px] italic text-[#E8A090] sm:text-[22px]",
+    ...tone("#a86850", "#E8A090", "rgba(217,119,87,0.55)"),
+  },
+  aero: {
+    fontClass: aeroFace.className,
+    label: "AERO",
+    name: "text-[13px] font-light tracking-[0.34em] text-[#d7e6ee] sm:text-[15px]",
+    ...tone("#6a8490", "#d7e6ee", "rgba(186,214,224,0.5)"),
+  },
+  "the-cake-is-not-a-lie": {
+    fontClass: cakeFace.className,
+    label: "the cake is not a lie",
+    name: "text-[12px] tracking-tight text-[#f3b4c6] sm:text-[15px]",
+    ...tone("#a86a7c", "#f3b4c6", "rgba(243,180,198,0.5)"),
+  },
+  whitepill: {
+    fontClass: whitepillFace.className,
+    label: "Whitepill",
+    name: "text-[15px] tracking-[0.14em] text-[#f7f4ef] sm:text-[20px]",
+    ...tone("#cfc8be", "#f7f4ef", "rgba(247,244,239,0.4)"),
+  },
+  "dont-let-me-scroll": {
+    fontClass: scrollFace.className,
+    label: "don't let me scroll",
+    name: "text-[10px] tracking-tight text-[#c5d2bc] sm:text-[12px]",
+    ...tone("#6d7a66", "#c5d2bc", "rgba(197,210,188,0.45)"),
+  },
+  downforce: {
+    fontClass: downforceFace.className,
+    label: "DOWNFORCE",
+    name: "text-[15px] tracking-[0.08em] text-[#e36a48] sm:text-[20px]",
+    ...tone("#8a4030", "#e36a48", "rgba(227,106,72,0.5)"),
+  },
+  "airplane-mode": {
+    fontClass: airplaneFace.className,
+    label: "Airplane mode",
+    name: "text-[12px] font-light tracking-[0.08em] text-[#b7cfe2] sm:text-[15px]",
+    ...tone("#60788c", "#b7cfe2", "rgba(183,207,226,0.5)"),
+  },
+  bliss: {
+    fontClass: blissFace.className,
+    label: "bliss",
+    name: "text-[16px] italic text-[#f0c2b4] sm:text-[22px]",
+    ...tone("#a07870", "#f0c2b4", "rgba(240,194,180,0.5)"),
+  },
+  clodyssey: {
+    fontClass: clodysseyFace.className,
+    label: "CLODYSSEY",
+    name: "text-[11px] tracking-[0.18em] text-[#d5deea] sm:text-[13px]",
+    ...tone("#7e8ea0", "#d5deea", "rgba(190,210,230,0.5)"),
+  },
+  "escape-velocity": {
+    fontClass: escapeFace.className,
+    label: "escape velocity",
+    name: "text-[16px] italic tracking-wide text-[#f2d7a0] sm:text-[22px]",
+    ...tone("#8a7040", "#f2d7a0", "rgba(242,215,160,0.55)"),
+  },
+};
+
+const fallbackVoice: Voice = {
+  fontClass: display.className,
+  label: "",
+  name: "text-[15px] italic text-[#f3e6d4] sm:text-[18px]",
+  ...tone("#7a5344", "#E8A090", "rgba(217,119,87,0.45)"),
+};
 
 export const metadata: Metadata = {
   title: "Mosaic gallery — Claudia, Every Frame",
@@ -40,18 +139,6 @@ function tintFor(edition: Edition, current: string | null): Tint | null {
     console.error("[gallery] tint missing", edition.id, err);
     return null;
   }
-}
-
-function plaque(label: string): string {
-  const small = new Set(["a", "an", "and", "is", "not", "of", "the"]);
-  return label
-    .toLowerCase()
-    .split(/\s+/)
-    .map((word, index) => {
-      if (index > 0 && small.has(word)) return word;
-      return word.replace(/^\S/, (letter) => letter.toUpperCase());
-    })
-    .join(" ");
 }
 
 function wallShape(count: number, targetAspect: number): { cols: number; rows: number } {
@@ -122,7 +209,17 @@ export default function GalleryPage() {
           grid-template-rows: repeat(${narrow.rows}, minmax(0, 1fr));
         }
         .gallery-card { height: 100%; justify-content: center; }
-        .gallery-print { max-height: calc(100% - 1.7rem); width: auto; max-width: 100%; }
+        .gallery-print {
+          max-height: calc(100% - 1.9rem);
+          width: auto;
+          max-width: 100%;
+          box-shadow: 0 0 0 1px #140c09, 0 0 0 2px var(--edge), 0 18px 36px -14px rgba(0,0,0,0.85);
+          transition: box-shadow 0.5s ease;
+        }
+        .group:hover .gallery-print,
+        .gallery-print[data-live="true"] {
+          box-shadow: 0 0 0 1px #140c09, 0 0 0 2px var(--glow), 0 0 22px -4px var(--soft), 0 18px 36px -14px rgba(0,0,0,0.9);
+        }
         @media (min-width: 900px) {
           .gallery-wall {
             flex: none;
@@ -142,9 +239,7 @@ export default function GalleryPage() {
             const src = `${editionBase(edition, current)}/claudia-mosaic-x.jpg`;
             const live = edition.id === current;
             const tint = shared ? null : tints[index];
-            const frame = live
-              ? "shadow-[0_0_0_1px_#140c09,0_0_0_2px_#D97757,0_0_28px_-4px_rgba(217,119,87,0.45),0_18px_36px_-14px_rgba(0,0,0,0.9)]"
-              : "shadow-[0_0_0_1px_#140c09,0_0_0_2px_#7a5344,0_18px_36px_-14px_rgba(0,0,0,0.85)] group-hover:shadow-[0_0_0_1px_#140c09,0_0_0_2px_#D97757,0_0_22px_-4px_rgba(217,119,87,0.4),0_22px_40px_-12px_rgba(0,0,0,0.9)]";
+            const voice = voices[edition.id] ?? { ...fallbackVoice, label: edition.label };
             return (
               <Link
                 key={edition.id}
@@ -154,14 +249,12 @@ export default function GalleryPage() {
                 <img
                   src={src}
                   alt=""
-                  className={`gallery-print object-contain transition-shadow duration-500 ${frame}`}
+                  data-live={live ? "true" : undefined}
+                  style={{ ["--edge" as string]: voice.edge, ["--glow" as string]: voice.glow, ["--soft" as string]: voice.soft }}
+                  className="gallery-print object-contain"
                 />
-                <p
-                  className={`mt-2 max-w-full shrink-0 truncate text-center text-[clamp(14px,1.35vw,20px)] leading-none font-medium italic transition-colors duration-500 group-hover:text-[#f6f0e6] ${
-                    live ? "text-[#E8A090]" : "text-[#f3e6d4]/88"
-                  }`}
-                >
-                  {plaque(edition.label)}
+                <p className={`${voice.fontClass} mt-2 max-w-full shrink-0 text-center leading-none whitespace-nowrap ${voice.name}`}>
+                  {voice.label}
                 </p>
                 {tint ? (
                   <p className="mt-0.5 max-w-full shrink-0 text-center font-sans text-[8px] text-[#f4efe6]/40">
