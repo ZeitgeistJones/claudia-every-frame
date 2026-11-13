@@ -1,17 +1,17 @@
 // The hang. Every edition is on the wall at once — nothing scrolls.
-// Prints sit in a thin brass edge. The tint is said once, for the whole room.
+// Copper edges, the same mark as the mosaic. The tint is said once.
 
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Cormorant_Garamond } from "next/font/google";
+import { Fraunces } from "next/font/google";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import editionsFile from "@/public/editions.json";
 import { editionBase, tintPercents, type Edition, type MosaicReport } from "@/lib/mosaic";
 
-const display = Cormorant_Garamond({
+const display = Fraunces({
   subsets: ["latin"],
-  weight: ["500"],
+  weight: ["500", "600"],
   style: ["normal", "italic"],
 });
 
@@ -92,19 +92,23 @@ export default function GalleryPage() {
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            "radial-gradient(ellipse 68% 52% at 50% 46%, rgba(255,206,150,0.08), transparent 68%), radial-gradient(ellipse 90% 70% at 50% 110%, rgba(0,0,0,0.55), transparent 46%), radial-gradient(ellipse 80% 40% at 50% -10%, rgba(0,0,0,0.5), transparent 50%)",
+            "radial-gradient(ellipse 62% 48% at 50% 44%, rgba(217,119,87,0.13), transparent 70%), radial-gradient(ellipse 90% 70% at 50% 110%, rgba(0,0,0,0.5), transparent 46%), radial-gradient(ellipse 80% 40% at 50% -10%, rgba(0,0,0,0.45), transparent 50%)",
         }}
       />
 
       <header className="relative z-10 flex shrink-0 items-end justify-between px-5 pt-4 pb-1 sm:px-8 sm:pt-6">
         <div>
-          <h1 className="text-[26px] leading-none font-medium italic tracking-tight text-[#f6f0e6] sm:text-[30px]">
+          <h1 className="text-[28px] leading-none font-medium italic tracking-tight text-[#f6f0e6] sm:text-[34px]">
+            <span className="mr-1.5 font-sans text-[0.62em] not-italic text-[#D97757]">✳</span>
             Mosaic gallery
           </h1>
+          <p className="mt-1 font-sans text-[11px] tracking-wide text-[#f4efe6]/48">
+            Every photograph of her, once.
+          </p>
         </div>
         <Link
           href="/"
-          className="mb-1 font-sans text-[11px] tracking-[0.18em] text-[#f4efe6]/45 uppercase transition-colors duration-300 hover:text-[#f4efe6]"
+          className="mb-1 font-sans text-[11px] tracking-[0.18em] text-[#f4efe6]/45 uppercase transition-colors duration-300 hover:text-[#E8A090]"
         >
           Enter
         </Link>
@@ -139,8 +143,8 @@ export default function GalleryPage() {
             const live = edition.id === current;
             const tint = shared ? null : tints[index];
             const frame = live
-              ? "shadow-[0_0_0_1px_#120e0b,0_0_0_2px_#e7d3a4,0_18px_36px_-14px_rgba(0,0,0,0.9)]"
-              : "shadow-[0_0_0_1px_#120e0b,0_0_0_2px_#8d7048,0_18px_36px_-14px_rgba(0,0,0,0.85)] group-hover:shadow-[0_0_0_1px_#120e0b,0_0_0_2px_#e7d3a4,0_22px_40px_-12px_rgba(0,0,0,0.9)]";
+              ? "shadow-[0_0_0_1px_#140c09,0_0_0_2px_#D97757,0_0_28px_-4px_rgba(217,119,87,0.45),0_18px_36px_-14px_rgba(0,0,0,0.9)]"
+              : "shadow-[0_0_0_1px_#140c09,0_0_0_2px_#7a5344,0_18px_36px_-14px_rgba(0,0,0,0.85)] group-hover:shadow-[0_0_0_1px_#140c09,0_0_0_2px_#D97757,0_0_22px_-4px_rgba(217,119,87,0.4),0_22px_40px_-12px_rgba(0,0,0,0.9)]";
             return (
               <Link
                 key={edition.id}
@@ -153,8 +157,8 @@ export default function GalleryPage() {
                   className={`gallery-print object-contain transition-shadow duration-500 ${frame}`}
                 />
                 <p
-                  className={`mt-2 max-w-full shrink-0 truncate text-center text-[clamp(13px,1.2vw,18px)] leading-none italic transition-colors duration-500 group-hover:text-[#f6f0e6] ${
-                    live ? "text-[#e7d3a4]" : "text-[#f3eadc]/50"
+                  className={`mt-2 max-w-full shrink-0 truncate text-center text-[clamp(14px,1.35vw,20px)] leading-none font-medium italic transition-colors duration-500 group-hover:text-[#f6f0e6] ${
+                    live ? "text-[#E8A090]" : "text-[#f3e6d4]/88"
                   }`}
                 >
                   {plaque(edition.label)}
