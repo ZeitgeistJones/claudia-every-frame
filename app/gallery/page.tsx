@@ -74,10 +74,10 @@ const voices: Record<string, Voice> = {
     label: "don't let me scroll",
     name: "text-[10px] tracking-tight sm:text-[12px]",
     words: [
-      { text: "don't", color: "#ff4f9a" },
+      { text: "don't", color: "#f7f5f2" },
       { text: "let", color: "#ffe14a" },
-      { text: "me", color: "#f7f5f2" },
-      { text: "scroll", color: "#3dce7a" },
+      { text: "me", color: "#3dce7a" },
+      { text: "scroll", color: "#ff4f9a" },
     ],
     ...tone("#8a4060", "#ff4f9a", "rgba(255,79,154,0.4)"),
   },
