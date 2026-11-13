@@ -23,6 +23,7 @@ import {
   parseEditions,
   parseMosaic,
   parseReport,
+  tintPercents,
 } from "@/lib/mosaic";
 
 type OSDModule = typeof OpenSeadragon;
@@ -70,6 +71,7 @@ export function MosaicExplorer({ initialEdition = null }: { initialEdition?: str
   const base = activeEdition
     ? editionBase(activeEdition, editions?.current ?? null)
     : "/mosaic";
+  const tint = tintPercents(report?.params);
 
   // ---------- geometry helpers (image px <-> screen px)
 
@@ -489,6 +491,11 @@ export function MosaicExplorer({ initialEdition = null }: { initialEdition?: str
           {activeEdition?.homage && (
             <p className="mt-1 max-w-xl text-[10.5px] leading-snug tracking-wide text-white/40">
               {activeEdition.homage}
+            </p>
+          )}
+          {tint && (
+            <p className="mt-1 max-w-xl text-[10.5px] leading-snug tracking-wide text-white/45">
+              Each photo is pulled {tint.light}% toward the brightness of the portrait behind it, {tint.color}% toward its color, with {tint.overlay}% of that portrait laid on top.
             </p>
           )}
           <p className="pointer-events-auto mt-1 text-[10.5px] tracking-wide text-white/45">

@@ -55,10 +55,28 @@ export interface MosaicReport {
   x_bytes: number;
   failures: Record<string, string>;
   target?: string;
+  /** How far each photo is pulled toward the portrait. 1 = all the way. */
+  params?: {
+    alpha?: number;
+    alpha_ab?: number;
+    beta?: number;
+  };
 }
 
 /** House rules shown on the site — hard caps the mosaic builder also enforces. */
 export const HOUSE_RULES_LABEL = "every photograph once · none reused";
+
+export function tintPercents(
+  params: MosaicReport["params"],
+): { light: number; color: number; overlay: number } | null {
+  if (!params || typeof params.alpha !== "number") return null;
+  const pct = (n: number | undefined) => Math.round((n ?? 0) * 100);
+  return {
+    light: pct(params.alpha),
+    color: pct(params.alpha_ab),
+    overlay: pct(params.beta),
+  };
+}
 
 export interface Edition {
   id: string;
