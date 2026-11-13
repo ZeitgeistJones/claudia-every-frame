@@ -41,7 +41,7 @@ const noopSubscribe = () => () => {};
 const fullscreenSupported = () => !!document.fullscreenEnabled;
 const serverFalse = () => false;
 
-export function MosaicExplorer() {
+export function MosaicExplorer({ initialEdition = null }: { initialEdition?: string | null }) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const osdHostRef = useRef<HTMLDivElement>(null);
   const hoverBoxRef = useRef<HTMLDivElement>(null);
@@ -253,7 +253,11 @@ export function MosaicExplorer() {
         if (cancelled) return;
         const parsed = parseEditions(raw);
         setEditions(parsed);
-        setEditionId(parsed.current ?? parsed.editions[0]?.id ?? null);
+        const requested =
+          initialEdition && parsed.editions.some((e) => e.id === initialEdition)
+            ? initialEdition
+            : null;
+        setEditionId(requested ?? parsed.current ?? parsed.editions[0]?.id ?? null);
         // keep initial loading state until mosaic tiles open
       })
       .catch((err: unknown) => {
@@ -269,7 +273,7 @@ export function MosaicExplorer() {
         setEditionId("live");
       });
     return () => { cancelled = true; };
-  }, []);
+  }, [initialEdition]);
 
   // ---------- load mosaic data + tiles for the current edition
 
@@ -386,7 +390,12 @@ export function MosaicExplorer() {
             <h1 className="text-[12px] font-semibold tracking-[0.28em] sm:text-[13px]">
               CLAUDIA <span className="text-[#D97757]">✳</span> EVERY FRAME
             </h1>
-            <span className="hidden text-[11px] tracking-wide text-white/45 md:inline">official editions</span>
+            <a
+              href="/gallery"
+              className="text-[11px] tracking-[0.18em] text-white/55 underline decoration-white/20 underline-offset-2 hover:text-white"
+            >
+              GALLERY
+            </a>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
