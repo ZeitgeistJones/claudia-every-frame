@@ -74,17 +74,7 @@ def write_og_from(src_x: Path, dest: Path) -> None:
     im2.crop((x0, y0, x0 + w, y0 + h)).save(dest, quality=88, optimize=True, progressive=True)
 
 
-def run_build(
-    *,
-    out: Path,
-    target: str,
-    canon: bool,
-    film_stills_id: str | None = None,
-    cols: int | None = None,
-    rows: int | None = None,
-    tile_w: int | None = None,
-    tile_h: int | None = None,
-) -> None:
+def run_build(*, out: Path, target: str, canon: bool, portrait_film: str | None = None) -> None:
     cmd = [
         sys.executable,
         str(ROOT / "pipeline/build_mosaic.py"),
@@ -98,24 +88,8 @@ def run_build(
     ]
     if canon:
         cmd.append("--canon")
-    if film_stills_id:
-        cmd.extend(
-            [
-                "--film-stills",
-                film_stills_id,
-                "--size",
-                "m",
-                "--keep-grid",
-                "--cols",
-                str(cols),
-                "--rows",
-                str(rows),
-                "--tile-w",
-                str(tile_w),
-                "--tile-h",
-                str(tile_h),
-            ]
-        )
+    if portrait_film:
+        cmd.extend(["--portrait-film", portrait_film])
     log(" ".join(cmd))
     subprocess.check_call(cmd, cwd=str(ROOT))
 
@@ -163,10 +137,9 @@ def main() -> None:
     her_local = [
         it for it in items if it.get("film") == film["id"] and it.get("her") is True
     ]
-    frame_items: list[dict] = []
-    frame_grid: tuple[int, int] | None = None
-    frame_tile: tuple[int, int] | None = None
-
+    # Tiles are always every Claudia photograph. A film with nothing in the
+    # photo index still gets a portrait from the cut frames on its page.
+    portrait_from_frames = False
     if her_local:
         if args.target_all:
             target_all_item = next((it for it in items if it["id"] == args.target_all), None)
@@ -183,24 +156,22 @@ def main() -> None:
                 f"{film['id']} has no gallery photographs and no cut frames on its page"
             )
         title = film.get("title") or film["id"]
-        for it in frame_items:
-            it["film_title"] = title
-        log(f"no gallery photographs; using {len(frame_items)} cut frames from the film page")
+        log(
+            f"no gallery photographs for this film; "
+            f"portrait from {len(frame_items)} cut frames, tiles from every song"
+        )
         if args.target_all:
             target_all_item = next((it for it in frame_items if it["id"] == args.target_all), None)
+            if target_all_item is None:
+                target_all_item = next((it for it in items if it["id"] == args.target_all), None)
             if not target_all_item:
-                raise SystemExit(
-                    f"--target-all {args.target_all} is not one of the cut frames "
-                    f"({', '.join(it['id'] for it in frame_items)})"
-                )
+                raise SystemExit(f"--target-all {args.target_all} not in the cut frames or the gallery")
             target_all_item = dict(target_all_item)
-            target_all_item["_fit_from_film"] = True
+            target_all_item["_fit_from_film"] = target_all_item.get("film") == film["id"]
         else:
             target_all_item = film_stills.pick_portrait(frame_items)
             target_all_item["film_title"] = title
-        frame_grid = film_stills.grid_for(len(frame_items))
-        frame_tile = film_stills.native_size(frame_items[0])
-        log(f"frame grid {frame_grid[0]}x{frame_grid[1]} tiles of {frame_tile[0]}x{frame_tile[1]}")
+        portrait_from_frames = target_all_item.get("film") == film["id"]
 
     log(
         f"portrait: {target_all_item['id']}  "
@@ -231,19 +202,12 @@ def main() -> None:
     if editions.CURRENT_ALL.exists():
         shutil.rmtree(editions.CURRENT_ALL)
 
-    if frame_items:
-        run_build(
-            out=editions.CURRENT_ALL,
-            target=target_all_item["id"],
-            canon=False,
-            film_stills_id=film["id"],
-            cols=frame_grid[0],
-            rows=frame_grid[1],
-            tile_w=frame_tile[0],
-            tile_h=frame_tile[1],
-        )
-    else:
-        run_build(out=editions.CURRENT_ALL, target=target_all_item["id"], canon=False)
+    run_build(
+        out=editions.CURRENT_ALL,
+        target=target_all_item["id"],
+        canon=False,
+        portrait_film=film["id"] if portrait_from_frames else None,
+    )
 
     # X card from the All mosaic
     write_og_from(editions.CURRENT_ALL / "claudia-mosaic-x.jpg", editions.PUBLIC / "og.jpg")
@@ -257,13 +221,13 @@ def main() -> None:
     )
     homage = None
     note = None
-    if frame_items:
+    if portrait_from_frames:
         when = target_all_item.get("framing") or target_all_item["id"]
         homage = (
             f"Edition for {film.get('title') or film['id']} — "
-            f"the frame at {when}, built from the {len(frame_items)} cut frames on the film page."
+            f"portrait is the frame at {when}. Every Claudia photograph, each once."
         )
-        note = f"{len(frame_items)} frames from the finished cut, each once."
+        note = "Every photograph once · none reused."
     entry = editions.upsert_edition(
         film=film,
         target_all=target_all_item["id"],

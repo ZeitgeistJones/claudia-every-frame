@@ -20,7 +20,7 @@
       "label": "FABLE",
       "released": "November 2026",
       "createdAt": "2026-11-13",
-      "homage": "Edition for FABLE \u2014 the frame at 2:38, built from the 22 cut frames on the film page.",
+      "homage": "Edition for FABLE \u2014 portrait is the frame at 2:38. Every Claudia photograph, each once.",
       "targets": {
         "all": "fable-cut-17"
       },
@@ -28,10 +28,10 @@
         "all": "/archives/fable/all"
       },
       "counts": {
-        "allUnique": 22,
-        "allTiles": 25
+        "allUnique": 1620,
+        "allTiles": 1620
       },
-      "note": "22 frames from the finished cut, each once."
+      "note": "Every photograph once \u00b7 none reused."
     },
     {
       "id": "aero",

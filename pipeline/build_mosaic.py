@@ -374,6 +374,7 @@ def main() -> None:
     ap.add_argument("--no-dzi", action="store_true", help="skip the deep-zoom tile pyramid")
     ap.add_argument("--no-refresh", action="store_true")
     ap.add_argument("--film-stills", default="", help="use only the cut frames listed on this film's gallery page")
+    ap.add_argument("--portrait-film", default="", help="resolve --target from this film's cut frames when it is not in the gallery index")
     ap.add_argument("--keep-grid", action="store_true", help="use --cols and --rows as given")
     args = ap.parse_args()
 
@@ -404,6 +405,19 @@ def main() -> None:
         if args.limit and args.limit < len(items):
             items = rng.sample(items, args.limit)
         log(f"{eligible_count} eligible ({'Film Canon' if args.canon else 'all her===true'}); using {len(items)}")
+        if args.portrait_film and args.target not in by_id:
+            import film_stills  # noqa: E402
+
+            still = next(
+                (it for it in film_stills.items_for(args.portrait_film) if it["id"] == args.target),
+                None,
+            )
+            if still is None:
+                raise SystemExit(
+                    f"target {args.target} is not in the gallery and not a cut frame of {args.portrait_film}"
+                )
+            by_id[args.target] = still
+            log(f"portrait {args.target} is a cut frame; tiles stay every Claudia photograph")
     log(f"house rules: every photo at least once · max {max_uses}× any single photo")
     dl_fail = fetch.download_all(items, args.size)
 
