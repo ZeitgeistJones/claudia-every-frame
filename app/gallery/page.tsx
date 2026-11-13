@@ -76,8 +76,8 @@ const voices: Record<string, Voice> = {
     words: [
       { text: "don't", color: "#f7f5f2" },
       { text: "let", color: "#ffe14a" },
-      { text: "me", color: "#3dce7a" },
-      { text: "scroll", color: "#ff4f9a" },
+      { text: "me", color: "#ff4f9a" },
+      { text: "scroll", color: "#3dce7a" },
     ],
     ...tone("#8a4060", "#ff4f9a", "rgba(255,79,154,0.4)"),
   },
