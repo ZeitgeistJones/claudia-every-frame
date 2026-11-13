@@ -13,7 +13,6 @@ import {
   Lora,
   Oswald,
   Outfit,
-  Syne,
 } from "next/font/google";
 import { readFileSync } from "node:fs";
 import path from "node:path";
@@ -29,7 +28,6 @@ const downforceFace = Oswald({ subsets: ["latin"], weight: ["500"] });
 const airplaneFace = Outfit({ subsets: ["latin"], weight: ["300"] });
 const blissFace = Lora({ subsets: ["latin"], weight: ["500"], style: ["italic"] });
 const clodysseyFace = Cinzel({ subsets: ["latin"], weight: ["500"] });
-const escapeFace = Syne({ subsets: ["latin"], weight: ["700"] });
 
 type Voice = {
   fontClass: string;
@@ -38,6 +36,7 @@ type Voice = {
   edge: string;
   glow: string;
   soft: string;
+  flaps?: string[];
 };
 
 function tone(edge: string, glow: string, soft: string): Pick<Voice, "edge" | "glow" | "soft"> {
@@ -100,10 +99,11 @@ const voices: Record<string, Voice> = {
     ...tone("#7e8ea0", "#d5deea", "rgba(190,210,230,0.5)"),
   },
   "escape-velocity": {
-    fontClass: escapeFace.className,
-    label: "escape velocity",
-    name: "text-[13px] font-bold tracking-tight text-[#ff3a3a] sm:text-[16px]",
-    ...tone("#9a2020", "#ff3a3a", "rgba(255,58,58,0.5)"),
+    fontClass: display.className,
+    label: "Escape velocity",
+    name: "",
+    flaps: ["ESCAPE", "VELOCITY"],
+    ...tone("#5c6a78", "#9aabba", "rgba(154,171,186,0.4)"),
   },
 };
 
@@ -209,8 +209,34 @@ export default function GalleryPage() {
           grid-template-rows: repeat(${narrow.rows}, minmax(0, 1fr));
         }
         .gallery-card { height: 100%; justify-content: center; }
+        .flaps { display: flex; flex-direction: column; align-items: center; gap: 2px; margin-top: 6px; }
+        .flap-row { display: flex; gap: 2px; }
+        .flap {
+          position: relative;
+          display: grid;
+          place-items: center;
+          width: clamp(11px, 1.15vw, 16px);
+          height: clamp(15px, 1.55vw, 22px);
+          border-radius: 1px;
+          background: linear-gradient(#f7f4ee 0 50%, #e6e1d6 50% 100%);
+          color: #161411;
+          font-family: var(--font-sans), "Helvetica Neue", Helvetica, Arial, sans-serif;
+          font-weight: 700;
+          font-size: clamp(8px, 0.9vw, 11px);
+          line-height: 1;
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.8), 0 1px 0 rgba(0,0,0,0.45);
+        }
+        .flap::after {
+          content: "";
+          position: absolute;
+          left: 0;
+          right: 0;
+          top: calc(50% - 0.5px);
+          height: 1px;
+          background: rgba(22, 20, 17, 0.28);
+        }
         .gallery-print {
-          max-height: calc(100% - 1.9rem);
+          max-height: calc(100% - 2.5rem);
           width: auto;
           max-width: 100%;
           box-shadow: 0 0 0 1px #140c09, 0 0 0 2px var(--edge), 0 18px 36px -14px rgba(0,0,0,0.85);
@@ -253,12 +279,26 @@ export default function GalleryPage() {
                   style={{ ["--edge" as string]: voice.edge, ["--glow" as string]: voice.glow, ["--soft" as string]: voice.soft }}
                   className="gallery-print object-contain"
                 />
-                <p
-                  style={{ color: voice.glow }}
-                  className={`${voice.fontClass} mt-2 max-w-full shrink-0 text-center leading-none whitespace-nowrap ${voice.name}`}
-                >
-                  {voice.label}
-                </p>
+                {voice.flaps ? (
+                  <span className="flaps" aria-label={voice.label}>
+                    {voice.flaps.map((word) => (
+                      <span className="flap-row" key={word}>
+                        {[...word].map((letter, letterIndex) => (
+                          <span className="flap" aria-hidden="true" key={`${word}-${letterIndex}`}>
+                            {letter}
+                          </span>
+                        ))}
+                      </span>
+                    ))}
+                  </span>
+                ) : (
+                  <p
+                    style={{ color: voice.glow }}
+                    className={`${voice.fontClass} mt-2 max-w-full shrink-0 text-center leading-none whitespace-nowrap ${voice.name}`}
+                  >
+                    {voice.label}
+                  </p>
+                )}
                 {tint ? (
                   <p className="mt-0.5 max-w-full shrink-0 text-center font-sans text-[8px] text-[#f4efe6]/40">
                     {tint.light}% light · {tint.color}% color · {tint.overlay}% overlay
