@@ -4,7 +4,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
-  Barlow_Condensed,
   Cinzel,
   Fraunces,
   Fredoka,
@@ -14,6 +13,7 @@ import {
   Lora,
   Oswald,
   Outfit,
+  Syne,
 } from "next/font/google";
 import { readFileSync } from "node:fs";
 import path from "node:path";
@@ -29,7 +29,7 @@ const downforceFace = Oswald({ subsets: ["latin"], weight: ["500"] });
 const airplaneFace = Outfit({ subsets: ["latin"], weight: ["300"] });
 const blissFace = Lora({ subsets: ["latin"], weight: ["500"], style: ["italic"] });
 const clodysseyFace = Cinzel({ subsets: ["latin"], weight: ["500"] });
-const escapeFace = Barlow_Condensed({ subsets: ["latin"], weight: ["500"], style: ["italic"] });
+const escapeFace = Syne({ subsets: ["latin"], weight: ["700"] });
 
 type Voice = {
   fontClass: string;
@@ -78,8 +78,8 @@ const voices: Record<string, Voice> = {
   downforce: {
     fontClass: downforceFace.className,
     label: "DOWNFORCE",
-    name: "text-[15px] tracking-[0.08em] text-[#e36a48] sm:text-[20px]",
-    ...tone("#8a4030", "#e36a48", "rgba(227,106,72,0.5)"),
+    name: "text-[15px] tracking-[0.08em] text-[#f4f6f8] sm:text-[20px]",
+    ...tone("#9aa3ab", "#f4f6f8", "rgba(244,246,248,0.4)"),
   },
   "airplane-mode": {
     fontClass: airplaneFace.className,
@@ -90,8 +90,8 @@ const voices: Record<string, Voice> = {
   bliss: {
     fontClass: blissFace.className,
     label: "bliss",
-    name: "text-[16px] italic text-[#f0c2b4] sm:text-[22px]",
-    ...tone("#a07870", "#f0c2b4", "rgba(240,194,180,0.5)"),
+    name: "text-[16px] italic text-[#a9d4f2] sm:text-[22px]",
+    ...tone("#6a90aa", "#a9d4f2", "rgba(169,212,242,0.5)"),
   },
   clodyssey: {
     fontClass: clodysseyFace.className,
@@ -102,8 +102,8 @@ const voices: Record<string, Voice> = {
   "escape-velocity": {
     fontClass: escapeFace.className,
     label: "escape velocity",
-    name: "text-[16px] italic tracking-wide text-[#f2d7a0] sm:text-[22px]",
-    ...tone("#8a7040", "#f2d7a0", "rgba(242,215,160,0.55)"),
+    name: "text-[13px] font-bold tracking-tight text-[#ff3a3a] sm:text-[16px]",
+    ...tone("#9a2020", "#ff3a3a", "rgba(255,58,58,0.5)"),
   },
 };
 
@@ -253,7 +253,10 @@ export default function GalleryPage() {
                   style={{ ["--edge" as string]: voice.edge, ["--glow" as string]: voice.glow, ["--soft" as string]: voice.soft }}
                   className="gallery-print object-contain"
                 />
-                <p className={`${voice.fontClass} mt-2 max-w-full shrink-0 text-center leading-none whitespace-nowrap ${voice.name}`}>
+                <p
+                  style={{ color: voice.glow }}
+                  className={`${voice.fontClass} mt-2 max-w-full shrink-0 text-center leading-none whitespace-nowrap ${voice.name}`}
+                >
                   {voice.label}
                 </p>
                 {tint ? (
