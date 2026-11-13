@@ -50,6 +50,19 @@ export default function GalleryPage() {
   const current = data.current;
   const wide = wallShape(editions.length, 2.3);
   const narrow = wallShape(editions.length, 0.5);
+  const tints = editions.map((edition) => tintFor(edition, current));
+  const first = tints.find((tint) => tint);
+  const shared =
+    first &&
+    tints.every(
+      (tint) =>
+        tint &&
+        tint.light === first.light &&
+        tint.color === first.color &&
+        tint.overlay === first.overlay,
+    )
+      ? first
+      : null;
 
   return (
     <main className="fixed inset-0 flex flex-col overflow-hidden bg-[#14110f] text-[#f3efe6]">
@@ -72,6 +85,9 @@ export default function GalleryPage() {
         </div>
         <p className="mt-0.5 text-[9px] leading-tight tracking-[0.08em] text-[#f3efe6]/45 sm:text-[10px]">
           Each photo is tinted toward the portrait behind it
+          {shared
+            ? ` — ${shared.light}% light, ${shared.color}% color, ${shared.overlay}% overlay`
+            : ""}
         </p>
       </header>
 
@@ -89,10 +105,10 @@ export default function GalleryPage() {
       `}</style>
 
       <section className="gallery-wall relative z-10 grid min-h-0 flex-1 gap-x-2 gap-y-1 px-2 pb-2 sm:gap-x-3 sm:px-4 sm:pb-3">
-        {editions.map((edition) => {
+        {editions.map((edition, index) => {
           const src = `${editionBase(edition, current)}/claudia-mosaic-x.jpg`;
           const live = edition.id === current;
-          const tint = tintFor(edition, current);
+          const tint = shared ? null : tints[index];
           return (
             <Link
               key={edition.id}
@@ -106,7 +122,7 @@ export default function GalleryPage() {
                   className="max-h-full max-w-full object-contain shadow-[0_0_0_clamp(3px,0.35vw,7px)_#f4efe4,0_0_0_clamp(5px,0.55vw,11px)_#e4c98a,0_0_0_clamp(7px,0.75vw,14px)_#6a4a28,0_10px_18px_rgba(0,0,0,0.5)]"
                 />
               </div>
-              <p className="max-w-full shrink-0 text-center text-[clamp(8px,1.05vw,12px)] leading-tight tracking-[0.08em] text-[#f3efe6]/85">
+              <p className="mb-1 max-w-full shrink-0 text-center text-[clamp(8px,1.05vw,12px)] leading-tight tracking-[0.08em] text-[#f3efe6]/85">
                 {live ? <span className="mr-1 text-[#e2b657]">●</span> : null}
                 {edition.label}
               </p>
