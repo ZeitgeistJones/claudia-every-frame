@@ -74,12 +74,12 @@ const voices: Record<string, Voice> = {
     label: "don't let me scroll",
     name: "text-[10px] tracking-tight sm:text-[12px]",
     words: [
-      { text: "don't", color: "#f7f5f2" },
-      { text: "let", color: "#ffe14a" },
+      { text: "don't", color: "#3ee0d6" },
+      { text: "let", color: "#6aa4ff" },
       { text: "me", color: "#ff4f9a" },
-      { text: "scroll", color: "#3dce7a" },
+      { text: "scroll", color: "#b794f6" },
     ],
-    ...tone("#8a4060", "#ff4f9a", "rgba(255,79,154,0.4)"),
+    ...tone("#3d4f66", "#7eb6ff", "rgba(126,182,255,0.4)"),
   },
   downforce: {
     fontClass: downforceFace.className,
