@@ -87,9 +87,9 @@ const voices: Record<string, Voice> = {
     name: "text-[12px] font-light tracking-[0.08em] sm:text-[15px]",
     words: [
       { text: "Airplane", color: "#f7f5f2" },
-      { text: "mode", color: "#e25822" },
+      { text: "mode", color: "#ff9a45" },
     ],
-    ...tone("#a85a32", "#e25822", "rgba(226,88,34,0.45)"),
+    ...tone("#e08a4a", "#ff9a45", "rgba(255,154,69,0.45)"),
   },
   bliss: {
     fontClass: blissFace.className,
