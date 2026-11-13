@@ -1,0 +1,32 @@
+{
+  "id": "fable",
+  "filmId": "fable",
+  "filmTitle": "FABLE",
+  "label": "FABLE",
+  "released": "November 2026",
+  "createdAt": "2026-11-13",
+  "homage": "Edition for FABLE \u2014 the frame at 2:38, built from the 22 cut frames on the film page.",
+  "targets": {
+    "all": "fable-cut-17"
+  },
+  "paths": {
+    "all": "/archives/fable/all"
+  },
+  "counts": {
+    "allUnique": 22,
+    "allTiles": 25
+  },
+  "note": "22 frames from the finished cut, each once.",
+  "galleryFilms": [
+    "escape-velocity",
+    "clodyssey",
+    "bliss",
+    "airplane-mode",
+    "downforce",
+    "dont-let-me-scroll",
+    "whitepill",
+    "the-cake-is-not-a-lie",
+    "aero",
+    "fable"
+  ]
+}

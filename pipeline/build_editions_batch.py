@@ -51,7 +51,7 @@ def run_build(*, out: Path, target: str) -> None:
         shutil.rmtree(out)
     out.mkdir(parents=True)
     cmd = [
-        str(ROOT / ".venv/bin/python"),
+        sys.executable,
         str(ROOT / "pipeline/build_mosaic.py"),
         "--no-refresh",
         "--max-uses",

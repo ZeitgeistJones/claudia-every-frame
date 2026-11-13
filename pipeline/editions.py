@@ -301,11 +301,15 @@ def pick_target_pair(items: list[dict], film_id: str) -> tuple[dict, dict]:
 def archive_current(edition_id: str) -> Path:
     """Copy the live mosaic folder into public/archives/<edition_id>/all/."""
     dest = ARCHIVES / edition_id
+    meta_path = dest / "meta.json"
+    saved_meta = meta_path.read_text(encoding="utf-8") if meta_path.exists() else None
     if dest.exists():
         shutil.rmtree(dest)
     dest.mkdir(parents=True)
     if CURRENT_ALL.exists():
         shutil.copytree(CURRENT_ALL, dest / "all")
+    if saved_meta is not None:
+        meta_path.write_text(saved_meta, encoding="utf-8")
     return dest
 
 
@@ -329,21 +333,24 @@ def upsert_edition(
     target_canon: str | None = None,
     make_current: bool = True,
     target_from_film: bool | None = None,
+    homage: str | None = None,
+    note: str | None = None,
 ) -> dict:
     _ = target_canon
     data = load_editions()
     edition_id = film["id"]
     all_counts = read_counts(CURRENT_ALL)
     title = film.get("title") or film["id"]
-    if target_from_film is True:
-        homage = f"Edition for {title} — portrait {target_all} (from the film)."
-    elif target_from_film is False:
-        homage = (
-            f"Edition for {title} — portrait {target_all} "
-            f"(fitting look from the archive)."
-        )
-    else:
-        homage = f"Edition for {title} — portrait {target_all}."
+    if not homage:
+        if target_from_film is True:
+            homage = f"Edition for {title} — portrait {target_all} (from the film)."
+        elif target_from_film is False:
+            homage = (
+                f"Edition for {title} — portrait {target_all} "
+                f"(fitting look from the archive)."
+            )
+        else:
+            homage = f"Edition for {title} — portrait {target_all}."
     entry = {
         "id": edition_id,
         "filmId": film["id"],
@@ -360,7 +367,7 @@ def upsert_edition(
             "allUnique": all_counts.get("unique"),
             "allTiles": all_counts.get("tiles"),
         },
-        "note": (
+        "note": note or (
             "Every photograph once · none reused. "
             "Portrait chosen to feel fitting for the film — not necessarily a frame copy."
         ),

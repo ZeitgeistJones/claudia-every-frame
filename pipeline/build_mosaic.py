@@ -373,6 +373,8 @@ def main() -> None:
     ap.add_argument("--seed", type=int, default=7)
     ap.add_argument("--no-dzi", action="store_true", help="skip the deep-zoom tile pyramid")
     ap.add_argument("--no-refresh", action="store_true")
+    ap.add_argument("--film-stills", default="", help="use only the cut frames listed on this film's gallery page")
+    ap.add_argument("--keep-grid", action="store_true", help="use --cols and --rows as given")
     args = ap.parse_args()
 
     rng = random.Random(args.seed)
@@ -383,13 +385,25 @@ def main() -> None:
     t0 = time.time()
 
     # ---- sources
-    all_items = fetch.fetch_index(refresh=not args.no_refresh)
-    by_id = {it["id"]: it for it in all_items}
-    items = fetch.select(all_items, canon=args.canon)
-    eligible_count = len(items)
-    if args.limit and args.limit < len(items):
-        items = rng.sample(items, args.limit)
-    log(f"{eligible_count} eligible ({'Film Canon' if args.canon else 'all her===true'}); using {len(items)}")
+    if args.film_stills:
+        import film_stills  # noqa: E402
+
+        items = film_stills.items_for(args.film_stills)
+        if not items:
+            raise SystemExit(f"no cut frames listed on /{args.film_stills}/")
+        by_id = {it["id"]: it for it in items}
+        eligible_count = len(items)
+        if args.limit and args.limit < len(items):
+            items = rng.sample(items, args.limit)
+        log(f"{eligible_count} cut frames on /{args.film_stills}/; using {len(items)}")
+    else:
+        all_items = fetch.fetch_index(refresh=not args.no_refresh)
+        by_id = {it["id"]: it for it in all_items}
+        items = fetch.select(all_items, canon=args.canon)
+        eligible_count = len(items)
+        if args.limit and args.limit < len(items):
+            items = rng.sample(items, args.limit)
+        log(f"{eligible_count} eligible ({'Film Canon' if args.canon else 'all her===true'}); using {len(items)}")
     log(f"house rules: every photo at least once · max {max_uses}× any single photo")
     dl_fail = fetch.download_all(items, args.size)
 
@@ -409,12 +423,19 @@ def main() -> None:
     log(f"{len(tiles)} sources ready, {len(failures)} failed")
 
     # Grid must obey house rules for this source count
-    cols, rows = fit_grid(len(tiles), args.cols, args.rows, max_uses=max_uses)
+    if args.keep_grid:
+        cols, rows = args.cols, args.rows
+        if cols < 1 or rows < 1 or cols * rows < len(tiles):
+            raise SystemExit(f"--keep-grid {cols}x{rows} cannot hold {len(tiles)} frames")
+        waste = cols * rows - len(tiles)
+        log(f"grid kept: {cols}x{rows}" + (f" ({waste} empty)" if waste else ""))
+    else:
+        cols, rows = fit_grid(len(tiles), args.cols, args.rows, max_uses=max_uses)
     W, H = cols * tw, rows * th
 
     # ---- target
     if args.target not in by_id:
-        raise SystemExit(f"target {args.target} not in gallery index")
+        raise SystemExit(f"target {args.target} not in the source set")
     tgt_item = by_id[args.target]
     fetch.download_all([tgt_item], "full")
     tgt_src = trim_black_borders(Image.open(fetch.local_path(tgt_item, "full")).convert("RGB"))
