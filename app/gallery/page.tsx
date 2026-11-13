@@ -1,14 +1,22 @@
-// Museum wall. Every edition hangs in one viewport — nothing scrolls.
+// The hang. Every edition is on the wall at once — nothing scrolls.
+// Prints sit in a thin brass edge. The tint is said once, for the whole room.
 
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Cormorant_Garamond } from "next/font/google";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import editionsFile from "@/public/editions.json";
 import { editionBase, tintPercents, type Edition, type MosaicReport } from "@/lib/mosaic";
 
+const display = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["500"],
+  style: ["normal", "italic"],
+});
+
 export const metadata: Metadata = {
-  title: "Gallery — Claudia, Every Frame",
+  title: "Mosaic gallery — Claudia, Every Frame",
   description: "Every Claudia mosaic, hung together.",
 };
 
@@ -17,9 +25,11 @@ type EditionsJson = {
   editions: Edition[];
 };
 
+type Tint = { light: number; color: number; overlay: number };
+
 const data = editionsFile as EditionsJson;
 
-function tintFor(edition: Edition, current: string | null) {
+function tintFor(edition: Edition, current: string | null): Tint | null {
   const base = editionBase(edition, current).replace(/^\//, "");
   try {
     const raw = JSON.parse(
@@ -30,6 +40,18 @@ function tintFor(edition: Edition, current: string | null) {
     console.error("[gallery] tint missing", edition.id, err);
     return null;
   }
+}
+
+function plaque(label: string): string {
+  const small = new Set(["a", "an", "and", "is", "not", "of", "the"]);
+  return label
+    .toLowerCase()
+    .split(/\s+/)
+    .map((word, index) => {
+      if (index > 0 && small.has(word)) return word;
+      return word.replace(/^\S/, (letter) => letter.toUpperCase());
+    })
+    .join(" ");
 }
 
 function wallShape(count: number, targetAspect: number): { cols: number; rows: number } {
@@ -65,76 +87,94 @@ export default function GalleryPage() {
       : null;
 
   return (
-    <main className="fixed inset-0 flex flex-col overflow-hidden bg-[#14110f] text-[#f3efe6]">
+    <main className={`${display.className} fixed inset-0 flex flex-col overflow-hidden bg-[#070605] text-[#f4efe6]`}>
       <div
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            "radial-gradient(ellipse at 50% 18%, rgba(255,236,206,0.14), transparent 46%), radial-gradient(ellipse at 50% 100%, rgba(0,0,0,0.45), transparent 55%)",
+            "radial-gradient(ellipse 68% 52% at 50% 46%, rgba(255,206,150,0.08), transparent 68%), radial-gradient(ellipse 90% 70% at 50% 110%, rgba(0,0,0,0.55), transparent 46%), radial-gradient(ellipse 80% 40% at 50% -10%, rgba(0,0,0,0.5), transparent 50%)",
         }}
       />
-      <header className="relative z-10 shrink-0 px-3 pt-2 pb-1 sm:px-5 sm:pt-3">
-        <div className="flex items-baseline justify-between gap-3">
-          <h1 className="text-[11px] font-medium tracking-[0.32em] sm:text-[12px]">THE GALLERY</h1>
-          <Link
-            href="/"
-            className="text-[10px] tracking-[0.2em] text-[#f3efe6]/60 underline decoration-[#f3efe6]/20 underline-offset-2 hover:text-[#f3efe6]"
-          >
-            ENTER
-          </Link>
+
+      <header className="relative z-10 flex shrink-0 items-end justify-between px-5 pt-4 pb-1 sm:px-8 sm:pt-6">
+        <div>
+          <h1 className="text-[26px] leading-none font-medium italic tracking-tight text-[#f6f0e6] sm:text-[30px]">
+            Mosaic gallery
+          </h1>
         </div>
-        <p className="mt-0.5 text-[9px] leading-tight tracking-[0.08em] text-[#f3efe6]/45 sm:text-[10px]">
-          Each photo is tinted toward the portrait behind it
-          {shared
-            ? ` — ${shared.light}% light, ${shared.color}% color, ${shared.overlay}% overlay`
-            : ""}
-        </p>
+        <Link
+          href="/"
+          className="mb-1 font-sans text-[11px] tracking-[0.18em] text-[#f4efe6]/45 uppercase transition-colors duration-300 hover:text-[#f4efe6]"
+        >
+          Enter
+        </Link>
       </header>
 
       <style>{`
         .gallery-wall {
+          flex: 1;
+          height: 100%;
           grid-template-columns: repeat(${narrow.cols}, minmax(0, 1fr));
           grid-template-rows: repeat(${narrow.rows}, minmax(0, 1fr));
         }
+        .gallery-card { height: 100%; justify-content: center; }
+        .gallery-print { max-height: calc(100% - 1.7rem); width: auto; max-width: 100%; }
         @media (min-width: 900px) {
           .gallery-wall {
+            flex: none;
+            height: auto;
             grid-template-columns: repeat(${wide.cols}, minmax(0, 1fr));
-            grid-template-rows: repeat(${wide.rows}, minmax(0, 1fr));
+            grid-template-rows: repeat(${wide.rows}, auto);
+            align-items: end;
           }
+          .gallery-card { height: auto; justify-content: flex-end; }
+          .gallery-print { max-height: none; width: 100%; height: auto; }
         }
       `}</style>
 
-      <section className="gallery-wall relative z-10 grid min-h-0 flex-1 gap-x-2 gap-y-1 px-2 pb-2 sm:gap-x-3 sm:px-4 sm:pb-3">
-        {editions.map((edition, index) => {
-          const src = `${editionBase(edition, current)}/claudia-mosaic-x.jpg`;
-          const live = edition.id === current;
-          const tint = shared ? null : tints[index];
-          return (
-            <Link
-              key={edition.id}
-              href={`/view/${edition.id}`}
-              className="flex h-full min-h-0 min-w-0 flex-col items-center justify-center px-1"
-            >
-              <div className="flex min-h-0 w-full flex-1 items-center justify-center p-[clamp(6px,0.8vw,14px)]">
+      <div className="relative z-10 flex min-h-0 flex-1 flex-col justify-center">
+        <section className="gallery-wall grid min-h-0 w-full content-center gap-x-4 gap-y-4 px-5 sm:gap-x-7 sm:px-10">
+          {editions.map((edition, index) => {
+            const src = `${editionBase(edition, current)}/claudia-mosaic-x.jpg`;
+            const live = edition.id === current;
+            const tint = shared ? null : tints[index];
+            const frame = live
+              ? "shadow-[0_0_0_1px_#120e0b,0_0_0_2px_#e7d3a4,0_18px_36px_-14px_rgba(0,0,0,0.9)]"
+              : "shadow-[0_0_0_1px_#120e0b,0_0_0_2px_#8d7048,0_18px_36px_-14px_rgba(0,0,0,0.85)] group-hover:shadow-[0_0_0_1px_#120e0b,0_0_0_2px_#e7d3a4,0_22px_40px_-12px_rgba(0,0,0,0.9)]";
+            return (
+              <Link
+                key={edition.id}
+                href={`/view/${edition.id}`}
+                className="gallery-card group flex min-h-0 min-w-0 flex-col items-center"
+              >
                 <img
                   src={src}
                   alt=""
-                  className="max-h-full max-w-full object-contain shadow-[0_0_0_clamp(3px,0.35vw,7px)_#f4efe4,0_0_0_clamp(5px,0.55vw,11px)_#e4c98a,0_0_0_clamp(7px,0.75vw,14px)_#6a4a28,0_10px_18px_rgba(0,0,0,0.5)]"
+                  className={`gallery-print object-contain transition-shadow duration-500 ${frame}`}
                 />
-              </div>
-              <p className="mb-1 max-w-full shrink-0 text-center text-[clamp(8px,1.05vw,12px)] leading-tight tracking-[0.08em] text-[#f3efe6]/85">
-                {live ? <span className="mr-1 text-[#e2b657]">●</span> : null}
-                {edition.label}
-              </p>
-              {tint ? (
-                <p className="mb-1 max-w-full shrink-0 text-center text-[clamp(7px,0.85vw,10px)] leading-tight text-[#f3efe6]/45">
-                  {tint.light}% light · {tint.color}% color · {tint.overlay}% overlay
+                <p
+                  className={`mt-2 max-w-full shrink-0 truncate text-center text-[clamp(13px,1.2vw,18px)] leading-none italic transition-colors duration-500 group-hover:text-[#f6f0e6] ${
+                    live ? "text-[#e7d3a4]" : "text-[#f3eadc]/50"
+                  }`}
+                >
+                  {plaque(edition.label)}
                 </p>
-              ) : null}
-            </Link>
-          );
-        })}
-      </section>
+                {tint ? (
+                  <p className="mt-0.5 max-w-full shrink-0 text-center font-sans text-[8px] text-[#f4efe6]/40">
+                    {tint.light}% light · {tint.color}% color · {tint.overlay}% overlay
+                  </p>
+                ) : null}
+              </Link>
+            );
+          })}
+        </section>
+
+        <p className="shrink-0 px-6 pt-5 pb-5 text-center font-sans text-[11px] leading-relaxed text-[#f4efe6]/36 sm:pt-7">
+          {shared
+            ? `Each photograph leans toward the portrait behind it — ${shared.light}% of its light, ${shared.color}% of its color, ${shared.overlay}% of the portrait laid on top.`
+            : "Each photograph leans toward the portrait behind it."}
+        </p>
+      </div>
     </main>
   );
 }

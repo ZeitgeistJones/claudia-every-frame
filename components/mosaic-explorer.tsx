@@ -394,9 +394,9 @@ export function MosaicExplorer({ initialEdition = null }: { initialEdition?: str
             </h1>
             <a
               href="/gallery"
-              className="text-[11px] tracking-[0.18em] text-white/55 underline decoration-white/20 underline-offset-2 hover:text-white"
+              className="text-[11px] tracking-[0.06em] text-white/55 underline decoration-white/20 underline-offset-2 hover:text-white"
             >
-              GALLERY
+              Mosaic gallery
             </a>
           </div>
 
