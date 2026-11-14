@@ -329,11 +329,24 @@ export default function GalleryPage() {
           })}
         </section>
 
-        <p className="shrink-0 px-6 pt-5 pb-5 text-center font-sans text-[11px] leading-relaxed text-[#f4efe6]/36 sm:pt-7">
-          {shared
-            ? `Each photograph leans toward the portrait behind it — ${shared.light}% of its light, ${shared.color}% of its color, ${shared.overlay}% of the portrait laid on top.`
-            : "Each photograph leans toward the portrait behind it."}
-        </p>
+        <div className="shrink-0 px-6 pt-4 pb-4 text-center sm:pt-5">
+          <p className="font-sans text-[11px] leading-relaxed text-[#f4efe6]/36">
+            {shared
+              ? `Each photograph leans toward the portrait behind it — ${shared.light}% of its light, ${shared.color}% of its color, ${shared.overlay}% of the portrait laid on top.`
+              : "Each photograph leans toward the portrait behind it."}
+          </p>
+          <p className="mt-1 font-sans text-[11px] tracking-wide text-[#f4efe6]/45">
+            Claudia by anabology · photographs from{" "}
+            <a
+              href="https://claudia.gallery/"
+              target="_blank"
+              rel="noreferrer"
+              className="underline decoration-[#f4efe6]/25 underline-offset-2 transition-colors hover:text-[#E8A090]"
+            >
+              claudia.gallery
+            </a>
+          </p>
+        </div>
       </div>
     </main>
   );
