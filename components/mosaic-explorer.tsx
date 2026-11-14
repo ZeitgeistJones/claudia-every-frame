@@ -393,7 +393,7 @@ export function MosaicExplorer({ initialEdition = null }: { initialEdition?: str
               CLAUDIA <span className="text-[#D97757]">✳</span> EVERY FRAME
             </h1>
             <a
-              href="/gallery"
+              href="/"
               className="text-[11px] tracking-[0.06em] text-white/55 underline decoration-white/20 underline-offset-2 hover:text-white"
             >
               Mosaic gallery
